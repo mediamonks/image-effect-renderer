@@ -1,0 +1,28 @@
+{
+  "sourceMap": false,
+  "instrument": false,
+  "check-coverage": true,
+  "per-file": true,
+  "lines": 100,
+  "statements": 100,
+  "functions": 50,
+  "branches": 100,
+  "include": [
+    "src/**/*.{js,ts}"
+  ],
+  "exclude": [
+    "test/**/*.spec.{js,ts}",
+    "src/lib/vendor/**/*.*"
+  ],
+  "reporter": [
+    "lcov",
+    "text-summary"
+  ],
+  "extension": [
+    ".js",
+    ".ts"
+  ],
+  "cache": true,
+  "all": true,
+  "report-dir": "./coverage"
+}

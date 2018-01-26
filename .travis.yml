@@ -1,0 +1,35 @@
+language: node_js
+
+cache: yarn
+
+node_js:
+  - 'stable'
+  - '6'
+  - '8'
+
+sudo: false
+
+before_install:
+  - yarn global add codeclimate-test-reporter
+
+script:
+  - yarn test
+
+after_script:
+  - codeclimate-test-reporter < coverage/lcov.info
+  - node_modules/.bin/coveralls < coverage/lcov.info
+
+deploy:
+  - provider: npm
+    email: 'devmonk@mediamonks.com'
+    api_key:
+      secure: 'gpt2+iZSXw3ibI3D6dNDs4iTp9m61NGzOLNn2PK8g8fveDyODh1q5PU497Iz/zlDM+lBslg4RWDfmihvqbdLJ7D+WP/jbr1eIal54lPVv6nq4kgT8C7INgJ5XRfOCbSoRwuY00eijRSLHxDEFEX87Pwm40q/CFQPcaNbTLgIxUXk/VKMikcagFPcVccwtC4WOaF+1VuKaLxxp4T6GtSirFz1ANn5DHNEg0XmoHOomSbNif0+1vaXnpbAcsI4+7gSbV1XBVud5ZimCQnniJv/bS0F5JBFeCpixAH7mILhf0/KLC6uUYvjB4m80N9ic1yEhXpJyeEh13aXen5ap04z67zy4p9Ggg+Rc3OuC8jQrltA8mv73ezHW6iZ5CfCD052tduirgDr+ZINx5vlg91ZN3sZ6B289jvrhBec6QqUQJIllW8VL5LjEs/HbI9NyqeZ2Dg89Z8gadSg9XzDloS9e1iJAxEymSH8T1XQHHFVwdPUTBedEBqwxd4T7fLReVCD02v98TbR0vaRwjeqVrcNSTuawQPOUAgZnYr9GKtkAQehE5EdkdWplVJwRg2Pvm3w8jmp6u2HAzM3Hc7aFq7fos7/995WEqAP4sXgQ7STtk+hXEzK2K+nYTvqFOQgBrfBCxBVXFaT4ZIMiFs/AJrHsva/0udZ0j8QWLEYQPT4D5k='
+    on:
+      tags: true
+      node: '8'
+    skip_cleanup: true
+
+addons:
+  code_climate:
+    repo_token:
+      secure: 'jMib2LNFGzfKiINRK0fOwibNgHnizTh87Fb1YK0Q2UpWtF7WiigEBhNyiX3pF02HH3iRuICHKYzE1QrZbIzk88XVTUhilO7vI+h1VpgbcuOxq7nkE+kSfxAiTpkD6eY7c0s8wSViKTPOVPPrpRfp8RYYLx6Vcox9jlN7StOHAgDuiwGwHPZ6lz2KGzX1xx8Z8ZLnHIIihv7rqQgetu7BNoPcrPv2Dz63qZI3DbFPWVJIe05B6I7iuiPgzlRZzIvUWofpp6zM5jT9ktrGyF786sh15mDzixoDzUDKmw6ptbc7MeoEuT2Co7FYr4LibXClSaoXcfKJ37/6E5Xzya1e7Sz/83+H1Xi34LCUcVHySzmCWSMWa1fGnZMCHJUdhCVmY5EJMQSGJEvPwHt+1beRYsWAm0cP2RsZ3LhIj9uB6jVXUz1pmhlkL2AFiuBZ2D3vKw4DTtnKqBounsI/FFm0Z0bhsOfkUs7HzAtdnPGjkzlHYW//YvncmTaO0fnMswJVLTKlMq9J/VnqLF1bH2CVYO9zBXIvf786SwgNrWAW/nmyOHE0kOzo79OVfm147qTPmF93ajwLWA814HUK8xpPZ5nMLgFaPpqlNO8co/5gpGm3cRrxRQ2yeOMCealz/EVJYS9LUmYugR42Ayg6iHLRoqwCKdtsjhMFZNEAOwsMs80='

@@ -1,0 +1,289 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>seng-event</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">seng-event</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> seng-event</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<p><a href="https://travis-ci.org/mediamonks/seng-event"><img src="https://img.shields.io/travis/mediamonks/seng-event.svg?maxAge=2592000" alt="Travis"></a>
+					<a href="https://codeclimate.com/github/mediamonks/seng-event"><img src="https://img.shields.io/codeclimate/github/mediamonks/seng-event.svg?maxAge=2592000" alt="Code Climate"></a>
+					<a href="https://coveralls.io/github/mediamonks/seng-event?branch=master"><img src="https://img.shields.io/coveralls/mediamonks/seng-event.svg?maxAge=2592000" alt="Coveralls"></a>
+					<a href="https://www.npmjs.com/package/seng-event"><img src="https://img.shields.io/npm/v/seng-event.svg?maxAge=2592000" alt="npm"></a>
+				<a href="https://www.npmjs.com/package/seng-event"><img src="https://img.shields.io/npm/dm/seng-event.svg?maxAge=2592000" alt="npm"></a></p>
+				<h1 id="seng-event">seng-event</h1>
+				<p>Provides Classes and utilities for dispatching and listening to events.</p>
+				<p>Provides an <em>EventDispatcher</em> base class that adds the ability to dispatch events and attach handlers that
+					should be called when such events are triggered. New event classes can be created by extending the <em>AbstractEvent</em>
+					class provided in this module. This module also provides basic event classes <em>BasicEvent</em> and <em>CommonEvent</em> that
+				are ready to be used with <em>EventDispatcher</em>.</p>
+				<p><em>seng-event</em> also supports event capturing and bubbling phases, heavily inspired by existing event
+					dispatching systems like the functionality described in the
+				<a href="https://www.w3.org/TR/DOM-Level-2-Events/events.html">DOM Event W3 spec</a></p>
+				<h2 id="installation">Installation</h2>
+				<h3 id="yarn-npm">yarn / npm</h3>
+				<pre><code class="lang-sh">yarn add seng-event
+</code></pre>
+				<pre><code class="lang-sh">npm i -S seng-event
+</code></pre>
+				<h3 id="other">other</h3>
+				<p>We also have browser, amd, commonjs, umd, systemjs and es6 versions of
+				this module available attached to the <a href="https://github.com/mediamonks/seng-event/releases">Github Releases</a>.</p>
+				<h2 id="basic-usage">Basic usage</h2>
+				<pre><code class="lang-ts"><span class="hljs-keyword">import</span> EventDispatcher, {AbstractEvent} <span class="hljs-keyword">from</span> <span class="hljs-string">'seng-event'</span>;
+<span class="hljs-keyword">import</span> {generateEventTypes, EVENT_TYPE_PLACEHOLDER} <span class="hljs-keyword">from</span> <span class="hljs-string">'seng-event/lib/util/eventTypeUtils'</span>;
+
+<span class="hljs-comment">// extend EventDispatcher</span>
+<span class="hljs-keyword">class</span> Foo <span class="hljs-keyword">extends</span> EventDispatcher {
+  ...
+}
+
+<span class="hljs-comment">// Create your own event class</span>
+<span class="hljs-keyword">class</span> FooEvent <span class="hljs-keyword">extends</span> AbstractEvent {
+   ...
+   <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> COMPLETE:<span class="hljs-built_in">string</span> = EVENT_TYPE_PLACEHOLDER;
+   ...
+}
+generateEventTypes({FooEvent});
+
+<span class="hljs-comment">// listener for events</span>
+<span class="hljs-keyword">const</span> foo = <span class="hljs-keyword">new</span> Foo();
+<span class="hljs-keyword">const</span> exampleHandler = <span class="hljs-function">(<span class="hljs-params">event:FooEvent</span>) =&gt;</span> 
+{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Handler called!'</span>, event.type, event.target);
+}
+foo.addEventListener(FooEvent.COMPLETE, exampleHandler);
+
+<span class="hljs-comment">// dispatch an event (will execute exampleHandler and log 'Handler called!')</span>
+foo.dispatchEvent(<span class="hljs-keyword">new</span> FooEvent(FooEvent.COMPLETE));
+</code></pre>
+				<h2 id="documentation">Documentation</h2>
+				<p>View the <a href="http://mediamonks.github.io/seng-event/">generated documentation</a>.</p>
+				<h2 id="building">Building</h2>
+				<p>In order to build seng-event, ensure that you have <a href="http://git-scm.com/downloads">Git</a>
+				and <a href="http://nodejs.org/">Node.js</a> installed.</p>
+				<p>Clone a copy of the repo:</p>
+				<pre><code class="lang-sh">git <span class="hljs-built_in">clone</span> https://github.com/mediamonks/seng-event.git
+</code></pre>
+				<p>Change to the seng-event directory:</p>
+				<pre><code class="lang-sh"><span class="hljs-built_in">cd</span> seng-event
+</code></pre>
+				<p>Install dev dependencies:</p>
+				<pre><code class="lang-sh">yarn
+</code></pre>
+				<p>Use one of the following main scripts:</p>
+				<pre><code class="lang-sh">yarn build           <span class="hljs-comment"># build this project</span>
+yarn dev             <span class="hljs-comment"># run dev-watch mode, serving example/index.html in the browser</span>
+yarn generate        <span class="hljs-comment"># generate all artifacts (compiles ts, webpack, docs and coverage)</span>
+yarn typings         <span class="hljs-comment"># install .d.ts dependencies (done on install)</span>
+yarn <span class="hljs-built_in">test</span>:unit       <span class="hljs-comment"># run the unit tests</span>
+yarn validate        <span class="hljs-comment"># runs validation scripts, including test, lint and coverage check</span>
+yarn lint            <span class="hljs-comment"># run tslint on this project</span>
+yarn doc             <span class="hljs-comment"># generate typedoc documentation</span>
+</code></pre>
+				<p>When installing this module, it adds a pre-push hook, that runs the <code>validate</code>
+				script before committing, so you can be sure that everything checks out.</p>
+				<h2 id="contribute">Contribute</h2>
+				<p>View <a href="./CONTRIBUTING.md">CONTRIBUTING.md</a></p>
+				<h2 id="changelog">Changelog</h2>
+				<p>View <a href="./CHANGELOG.md">CHANGELOG.md</a></p>
+				<h2 id="authors">Authors</h2>
+				<p>View <a href="./AUTHORS.md">AUTHORS.md</a></p>
+				<h2 id="license">LICENSE</h2>
+				<p><a href="./LICENSE">MIT</a> © MediaMonks</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-enum">
+						<a href="enums/calllistenerresult.html" class="tsd-kind-icon">Call<wbr>Listener<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-enum">
+						<a href="enums/eventphase.html" class="tsd-kind-icon">Event<wbr>Phase</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/abstractevent.html" class="tsd-kind-icon">Abstract<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/basicevent.html" class="tsd-kind-icon">Basic<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/commonevent.html" class="tsd-kind-icon">Common<wbr>Event</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/eventdispatcher.html" class="tsd-kind-icon">Event<wbr>Dispatcher</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/eventlistenerdata.html" class="tsd-kind-icon">Event<wbr>Listener<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ievent.html" class="tsd-kind-icon">IEvent</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ieventdispatcher.html" class="tsd-kind-icon">IEvent<wbr>Dispatcher</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#eventhandler" class="tsd-kind-icon">Event<wbr>Handler</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-is-not-exported">
+						<a href="globals.html#eventlistenermap" class="tsd-kind-icon">Event<wbr>Listener<wbr>Map</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#event_type_placeholder" class="tsd-kind-icon">EVENT_<wbr>TYPE_<wbr>PLACEHOLDER</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-is-not-exported">
+						<a href="globals.html#calllistenerresult" class="tsd-kind-icon">call<wbr>Listener<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#calllisteners" class="tsd-kind-icon">call<wbr>Listeners</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#generateeventtypes" class="tsd-kind-icon">generate<wbr>Event<wbr>Types</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getcalltree" class="tsd-kind-icon">get<wbr>Call<wbr>Tree</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#getparents" class="tsd-kind-icon">get<wbr>Parents</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#removelistenersfrom" class="tsd-kind-icon">remove<wbr>Listeners<wbr>From</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>

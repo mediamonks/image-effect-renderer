@@ -1,0 +1,4 @@
+import 'mocha';
+
+describe('ImageEffectRenderer', () => {
+});

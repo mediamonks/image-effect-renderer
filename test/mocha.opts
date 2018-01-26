@@ -1,0 +1,2 @@
+--require ./test/setup.js
+--require jsdom-global/register

@@ -1,0 +1,17 @@
+## copy to .npmignore
+.DS_Store
+.idea
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+.npm
+.eslintcache
+/coverage/
+/.nyc_output/
+/tmp/
+
+## only ignore in git
+/lib
+/index.js
+/index.d.ts
