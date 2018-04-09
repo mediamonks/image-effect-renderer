@@ -1,1 +1,1 @@
-export { default as ImageEffectRender } from './lib/ImageEffectRender';
+export { default as ImageEffectRenderer } from './lib/ImageEffectRenderer';
