@@ -1,4 +1,5 @@
 import { ImageEffectRenderer } from '../../src/';
+import ImageLoader from './ImageLoader';
 const wolfenstein = require('./shader/wolfenstein.glsl');
 const smoothstep = require('./shader/smoothstep.glsl');
 
@@ -19,7 +20,7 @@ export default class ImageEffectExample {
     );
 
     if (this.hasImage) {
-      this.loadImages().then(this.init.bind(this));
+      ImageLoader.loadImages(['example.jpg', 'transition.jpg']).then(this.init.bind(this));
     } else {
       this.renderer.play();
     }
@@ -41,19 +42,5 @@ export default class ImageEffectExample {
   private drawCurrentFrame():void {
     this.renderer.setUniformFloat('delta', this.currentFrame / ImageEffectRenderer.MAX_ANIMATION_FRAMES);
     this.renderer.draw();
-  }
-
-  private loadImages():Promise<any> {
-    return Promise.all(
-      ['example.jpg', 'transition.jpg'].map(fileName => this.loadImage(fileName)),
-    );
-  }
-
-  private loadImage(fileName: string):Promise<HTMLImageElement> {
-    return new Promise((resolve) => {
-      const img = new Image;
-      img.onload = () => resolve(img);
-      img.src = `../static/${fileName}`;
-    });
   }
 }
