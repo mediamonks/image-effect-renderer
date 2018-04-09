@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack-dev-server --config ./build-tools/webpack.config.js --mode development",
+    "build": "webpack --config ./build-tools/webpack.config.js --mode production"
+  },
+  "author": "René Drieënhuizen",
+  "license": "MIT",
+  "dependencies": {
+    "raw-loader": "^0.5.1",
+    "ts-loader": "^4.1.0",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.12",
+    "webpack-dev-server": "^3.1.1"
+  }
+}
