@@ -1,67 +1,61 @@
-[![Travis](https://img.shields.io/travis/mediamonks/seng-event.svg?maxAge=2592000)](https://travis-ci.org/mediamonks/seng-event)
-[![Code Climate](https://img.shields.io/codeclimate/github/mediamonks/seng-event.svg?maxAge=2592000)](https://codeclimate.com/github/mediamonks/seng-event)
-[![Coveralls](https://img.shields.io/coveralls/mediamonks/seng-event.svg?maxAge=2592000)](https://coveralls.io/github/mediamonks/seng-event?branch=master)
-[![npm](https://img.shields.io/npm/v/seng-event.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-event)
-[![npm](https://img.shields.io/npm/dm/seng-event.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-event)
+[![Travis](https://img.shields.io/travis/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://travis-ci
+.org/mediamonks/seng-effectrenderer)
+[![Code Climate](https://img.shields.io/codeclimate/github/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://codeclimate.com/github/mediamonks/seng-effectrenderer)
+[![Coveralls](https://img.shields.io/coveralls/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://coveralls.io/github/mediamonks/seng-effectrenderer?branch=master)
+[![npm](https://img.shields.io/npm/v/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
+[![npm](https://img.shields.io/npm/dm/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
 
-# seng-event
-Provides Classes and utilities for dispatching and listening to events.
+# seng-effectrenderer
+Provides functionality for easily insert WebGL shaders in your application.
 
-Provides an _EventDispatcher_ base class that adds the ability to dispatch events and attach handlers that 
-should be called when such events are triggered. New event classes can be created by extending the _AbstractEvent_
-class provided in this module. This module also provides basic event classes _BasicEvent_ and _CommonEvent_ that
-are ready to be used with _EventDispatcher_.
+Provides an _ImageEffectRenderer_ that can handle simple WebGL shaders.
+The _ImageEffectRenderer_ has a method to add up to 4 images on layers, which you can use to create effects with.
 
-_seng-event_ also supports event capturing and bubbling phases, heavily inspired by existing event 
-dispatching systems like the functionality described in the 
-[DOM Event W3 spec](https://www.w3.org/TR/DOM-Level-2-Events/events.html)
+It also provides a _PanoramaRenderer_ for displaying simple image panorama's
+
+_ImageEffectRenderer_ supports the most common variables used in [Shadertoy](https://www.shadertoy.com).
+This makes it easy to use base effects from that website.
 
 
 ## Installation
 
 ```sh
-yarn add seng-event
+yarn add seng-effectrenderer
 ```
 
 ```sh
-npm i -S seng-event
+npm i -S seng-effectrenderer
 ```
 
 ## Basic usage
 
+Simple shader rendering on canvas.
 ```ts
-import EventDispatcher, {AbstractEvent} from 'seng-event';
-import {generateEventTypes, EVENT_TYPE_PLACEHOLDER} from 'seng-event/lib/util/eventTypeUtils';
+import { ImageEffectRenderer } from 'seng-effectrenderer';
+import shader from './shader.glsl';
 
-// extend EventDispatcher
-class Foo extends EventDispatcher {
-  ...
-}
-
-// Create your own event class
-class FooEvent extends AbstractEvent {
-   ...
-   public static COMPLETE:string = EVENT_TYPE_PLACEHOLDER;
-   ...
-}
-generateEventTypes({FooEvent});
-
-// listener for events
-const foo = new Foo();
-const exampleHandler = (event:FooEvent) => 
-{
-  console.log('Handler called!', event.type, event.target);
-}
-foo.addEventListener(FooEvent.COMPLETE, exampleHandler);
-
-// dispatch an event (will execute exampleHandler and log 'Handler called!')
-foo.dispatchEvent(new FooEvent(FooEvent.COMPLETE));  
+const renderer = ImageEffectRenderer.createTemporary(
+  wrapperElement,
+  shader,
+  true,
+); 
+renderer.play();
 ```
+
+Simple Panorama example (make sure the images are preloaded first).
+```ts
+import { PanoramaRenderer } from 'seng-effectrenderer';
+
+const renderer = new PanoramaRenderer(wrapperElement, imageSrc);
+renderer.init();
+```
+
+For more examples, please check the examples directory.
 
 
 ## Documentation
 
-View the [generated documentation](http://mediamonks.github.io/seng-event/).
+View the [generated documentation](http://mediamonks.github.io/seng-effectrenderer/).
 
 
 ## Building
@@ -71,12 +65,12 @@ and [Node.js](http://nodejs.org/) installed.
 
 Clone a copy of the repo:
 ```sh
-git clone https://github.com/mediamonks/seng-event.git
+git clone https://github.com/mediamonks/seng-effectrenderer.git
 ```
 
-Change to the seng-event directory:
+Change to the seng-effectrenderer directory:
 ```sh
-cd seng-event
+cd seng-effectrenderer
 ```
 
 Install dev dependencies:
