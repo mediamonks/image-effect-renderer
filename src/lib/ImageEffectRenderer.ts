@@ -1,5 +1,4 @@
 export default class ImageEffectRenderer {
-  public static MAX_ANIMATION_FRAMES: number = 255;
   public static MAX_IMAGE_EFFECT_RENDERERS: number = 10;
 
   // webgl
