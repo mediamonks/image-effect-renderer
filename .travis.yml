@@ -3,31 +3,30 @@ language: node_js
 cache: yarn
 
 node_js:
-  - 'stable'
-  - '6'
-  - '8'
+- 'stable'
+- '6'
+- '8'
 
 sudo: false
 
 before_install:
-  - yarn global add codeclimate-test-reporter
+- yarn global add codeclimate-test-reporter
 
 script:
-  - yarn test
+- yarn test
 
 after_script:
-  - codeclimate-test-reporter < coverage/lcov.info
-  - node_modules/.bin/coveralls < coverage/lcov.info
+- codeclimate-test-reporter < coverage/lcov.info
+- node_modules/.bin/coveralls < coverage/lcov.info
 
 deploy:
-  - provider: npm
-    email: 'devmonk@mediamonks.com'
-    api_key:
-      secure: 'gpt2+iZSXw3ibI3D6dNDs4iTp9m61NGzOLNn2PK8g8fveDyODh1q5PU497Iz/zlDM+lBslg4RWDfmihvqbdLJ7D+WP/jbr1eIal54lPVv6nq4kgT8C7INgJ5XRfOCbSoRwuY00eijRSLHxDEFEX87Pwm40q/CFQPcaNbTLgIxUXk/VKMikcagFPcVccwtC4WOaF+1VuKaLxxp4T6GtSirFz1ANn5DHNEg0XmoHOomSbNif0+1vaXnpbAcsI4+7gSbV1XBVud5ZimCQnniJv/bS0F5JBFeCpixAH7mILhf0/KLC6uUYvjB4m80N9ic1yEhXpJyeEh13aXen5ap04z67zy4p9Ggg+Rc3OuC8jQrltA8mv73ezHW6iZ5CfCD052tduirgDr+ZINx5vlg91ZN3sZ6B289jvrhBec6QqUQJIllW8VL5LjEs/HbI9NyqeZ2Dg89Z8gadSg9XzDloS9e1iJAxEymSH8T1XQHHFVwdPUTBedEBqwxd4T7fLReVCD02v98TbR0vaRwjeqVrcNSTuawQPOUAgZnYr9GKtkAQehE5EdkdWplVJwRg2Pvm3w8jmp6u2HAzM3Hc7aFq7fos7/995WEqAP4sXgQ7STtk+hXEzK2K+nYTvqFOQgBrfBCxBVXFaT4ZIMiFs/AJrHsva/0udZ0j8QWLEYQPT4D5k='
-    on:
-      tags: true
-      node: '8'
-    skip_cleanup: true
+- provider: npm
+  email: 'devmonk@mediamonks.com'
+  api_key: $NPM_TOKEN
+  on:
+    tags: true
+    node: '8'
+  skip_cleanup: true
 
 addons:
   code_climate:
