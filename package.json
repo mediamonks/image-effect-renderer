@@ -98,6 +98,6 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.35",
-    "seng-event": "^1.2.3"
+    "seng-disposable": "^1.1.3"
   }
 }
