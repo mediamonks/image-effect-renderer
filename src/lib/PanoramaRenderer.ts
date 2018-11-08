@@ -157,7 +157,9 @@ export default class PanoramaRenderer extends sengDisposable {
   private inertia: number;
   private smoothness: number;
   private fovV: number;
-  private isready: boolean = false;
+
+  private isReady: boolean = false;
+  private animationLoop: boolean = false;
 
   constructor(
     canvasParent: HTMLElement,
@@ -182,56 +184,32 @@ export default class PanoramaRenderer extends sengDisposable {
     image.src = panoramaPath;
     image.onload = () => {
       this.imageEffectRender.addImage(image, 0, false, true, true);
-      this.isready = true;
+      this.isReady = true;
     };
 
     this.mouseListener = new MouseListener(this.imageEffectRender.getCanvas());
+  }
+
+  public init(): void {
+    this.play();
   }
 
   public updateSize(): void {
     this.imageEffectRender.updateSize();
   }
 
-  private getShader(): string {
-    return `uniform vec2 uRotation;
-			uniform float uAspect;
-			uniform vec3 uFrustumCorner;
-			
-			vec2 getEqUV(vec3 rd)
-            {
-                vec2 uv = vec2(atan(rd.z, rd.x), asin(rd.y));
-				uv *= vec2(0.1591,0.3183);
-				uv.y += 0.5;
-				return fract(uv);
-            }
-            mat2 getMatrix(float a)
-			{
-				float s = sin(a);
-				float c = cos(a);
-				return mat2(c, -s, s, c);
-			}
-            void mainImage( out vec4 c, vec2 p )
-            {
-                vec3 rd = vec3(vUV0 * 2. - 1., 1.) * uFrustumCorner;
-                rd = normalize(rd);
-                rd.yz *= getMatrix(-uRotation.y);
-                rd.xz *= getMatrix(uRotation.x);
-                c.xyz = texture(iChannel0, getEqUV(rd)).xyz;
-                c.w = 1.0;
-            }`;
-  }
-
-  public init(): void {
+  public play(): void {
+    this.animationLoop = true;
     this.update();
   }
 
-  public lerp(a: number, b: number, i: number): number {
-    return (1 - i) * a + i * b;
+  public pause(): void {
+    this.animationLoop = false;
   }
 
-  public update(): void {
-    if (this.isDisposed()) return;
-    if (this.isready) {
+  private update(): void {
+    if (this.isDisposed() || !this.animationLoop) return;
+    if (this.isReady) {
       this.mouseListener.update();
 
       // aspect ratio can change
@@ -271,6 +249,39 @@ export default class PanoramaRenderer extends sengDisposable {
     }
 
     window.requestAnimationFrame(() => this.update());
+  }
+
+  private getShader(): string {
+    return `uniform vec2 uRotation;
+			uniform float uAspect;
+			uniform vec3 uFrustumCorner;
+			
+			vec2 getEqUV(vec3 rd)
+            {
+                vec2 uv = vec2(atan(rd.z, rd.x), asin(rd.y));
+				uv *= vec2(0.1591,0.3183);
+				uv.y += 0.5;
+				return fract(uv);
+            }
+            mat2 getMatrix(float a)
+			{
+				float s = sin(a);
+				float c = cos(a);
+				return mat2(c, -s, s, c);
+			}
+            void mainImage( out vec4 c, vec2 p )
+            {
+                vec3 rd = vec3(vUV0 * 2. - 1., 1.) * uFrustumCorner;
+                rd = normalize(rd);
+                rd.yz *= getMatrix(-uRotation.y);
+                rd.xz *= getMatrix(uRotation.x);
+                c.xyz = texture(iChannel0, getEqUV(rd)).xyz;
+                c.w = 1.0;
+            }`;
+  }
+
+  private lerp(a: number, b: number, i: number): number {
+    return (1 - i) * a + i * b;
   }
 
   dispose() {

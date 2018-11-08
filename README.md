@@ -1,5 +1,4 @@
-[![Travis](https://img.shields.io/travis/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://travis-ci
-.org/mediamonks/seng-effectrenderer)
+[![Travis](https://img.shields.io/travis/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://travis-ci.org/mediamonks/seng-effectrenderer)
 [![Code Climate](https://img.shields.io/codeclimate/github/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://codeclimate.com/github/mediamonks/seng-effectrenderer)
 [![Coveralls](https://img.shields.io/coveralls/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://coveralls.io/github/mediamonks/seng-effectrenderer?branch=master)
 [![npm](https://img.shields.io/npm/v/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
@@ -38,7 +37,22 @@ const renderer = ImageEffectRenderer.createTemporary(
   wrapperElement,
   shader,
   true,
-); 
+);
+renderer.play();
+```
+
+Add an image you can apply the shader to. This can have 4 layers of images to read from the shader (make sure the images are preloaded first).
+```ts
+import { ImageEffectRenderer } from 'seng-effectrenderer';
+import shader from './shader.glsl';
+
+const renderer = ImageEffectRenderer.createTemporary(
+  wrapperElement,
+  shader,
+  true,
+);
+
+renderer.addImage(image, 0);
 renderer.play();
 ```
 
@@ -109,5 +123,3 @@ View [AUTHORS.md](./AUTHORS.md)
 ## LICENSE
 
 [MIT](./LICENSE) © MediaMonks
-
-
