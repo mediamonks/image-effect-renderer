@@ -1,7 +1,7 @@
-import { PanoramaRenderer } from '../../src/';
-import ImageLoader from './ImageLoader';
+import { PanoramaRenderer } from '../../../src/';
+import ImageLoader from '../utils/ImageLoader';
 
-export default class PanoramaExample {
+export default class Panorama {
 
   private renderer: PanoramaRenderer;
   private wrapper: HTMLElement;

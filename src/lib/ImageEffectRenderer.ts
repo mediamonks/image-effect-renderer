@@ -63,6 +63,13 @@ export default class ImageEffectRenderer {
     }
   }
 
+  /**
+   * Create a GL canvas object and stores it in a Pool because we can't have unlimited gl contexts.
+   *
+   * @param container: HTMLElement and the wrapper of the canvas. Canvas will size based on this element
+   * @param shader: Plain text shader that is applied
+   * @param animationLoop: Boolean to automatically play the animationFrame to update the canvas
+   */
   public static createTemporary(
     container: HTMLElement,
     shader: string,
@@ -134,10 +141,11 @@ export default class ImageEffectRenderer {
   }
 
   /**
-   * Add Image to the GL, This can be an HTMLImageElement or a rendered Canvas
+   * Add Image to the GL, This can be an HTMLImageElement or a rendered Canvas.
+   * Can have up to 4 slots
    *
-   * @param image
-   * @param slotIndex
+   * @param image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement
+   * @param slotIndex: number from 0 to 3
    * @param clampToEdge
    */
   public addImage(
@@ -187,52 +195,96 @@ export default class ImageEffectRenderer {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
   }
 
+  /**
+   * Returns the Canvas Element
+   */
   public getCanvas(): HTMLCanvasElement {
     return this.canvas;
   }
 
+  /**
+   * Play the animationFrame loop
+   */
   public play(): void {
     if (!this.requestAnimationID) {
+      this.animationLoop = true;
       this.draw(0);
     }
   }
 
+  /**
+   * Stop the animationFrame loop
+   */
   public stop(): void {
     if (this.requestAnimationID) {
       window.cancelAnimationFrame(this.requestAnimationID);
       this.requestAnimationID = null;
+      this.animationLoop = false;
     }
   }
 
+  /**
+   * Set a Uniform Floating variable used in the Shader
+   * @param name: string
+   * @param value: float
+   */
   public setUniformFloat(name: string, value: number): void {
     this.gl.useProgram(this.program);
     this.gl.uniform1f(this.gl.getUniformLocation(this.program, name), value);
   }
 
+  /**
+   * Set a Uniform Integer variable used in the Shader
+   * @param name: string
+   * @param value: Int
+   */
   public setUniformInt(name: string, value: number): void {
     this.gl.useProgram(this.program);
     this.gl.uniform1i(this.gl.getUniformLocation(this.program, name), value);
   }
 
+  /**
+   * Set a Uniform Vec2 variable used in the Shader
+   * @param name: string
+   * @param value: Vec2
+   */
   public setUniformVec2(name: string, x: number, y: number): void {
     this.gl.useProgram(this.program);
     this.gl.uniform2f(this.gl.getUniformLocation(this.program, name), x, y);
   }
 
+  /**
+   * Set a Uniform Vec3 variable used in the Shader
+   * @param name: string
+   * @param value: Vec3
+   */
   public setUniformVec3(name: string, x: number, y: number, z: number): void {
     this.gl.useProgram(this.program);
     this.gl.uniform3f(this.gl.getUniformLocation(this.program, name), x, y, z);
   }
 
+  /**
+   * Set a Uniform Vec4 variable used in the Shader
+   * @param name: string
+   * @param value: Vec4
+   */
   public setUniformVec4(name: string, x: number, y: number, z: number, w: number): void {
     this.gl.useProgram(this.program);
     this.gl.uniform4f(this.gl.getUniformLocation(this.program, name), x, y, z, w);
   }
 
+  /**
+   * Returns the RenderTime for the shader
+   */
   public get renderTime(): number {
     return this.time;
   }
 
+  /**
+   * Draw the new Canvas Frame, can be used to manually update the canvas when a Uniform has changed
+   *
+   * @param time
+   */
   public draw(time: number = 0): void {
     this.time = time / 1000;
 
@@ -384,6 +436,11 @@ export default class ImageEffectRenderer {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
   }
 
+  /**
+   * Release a temporary Canvas context from the pool. Freeing it up for other uses.
+   *
+   * @param ier
+   */
   public static releaseTemporary(ier: ImageEffectRenderer): void {
     ier.stop();
 
