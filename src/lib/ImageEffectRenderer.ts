@@ -36,6 +36,8 @@ export default class ImageEffectRenderer {
   private container: HTMLElement;
   private animationLoop: boolean;
 
+  private canvasScale: number = 1;
+
   /**
    * Requires a HTMLCanvasElement and a shader program as a plain text string
    *
@@ -69,11 +71,14 @@ export default class ImageEffectRenderer {
    * @param container: HTMLElement and the wrapper of the canvas. Canvas will size based on this element
    * @param shader: Plain text shader that is applied
    * @param animationLoop: Boolean to automatically play the animationFrame to update the canvas
+   * @param canvasScale: Number to scale up/down the real canvas size. Can be used to shrink the canvas and render
+   * less pixels, which should result in faster rendering.
    */
   public static createTemporary(
     container: HTMLElement,
     shader: string,
     animationLoop: boolean = false,
+    canvasScale: number = 1,
   ): ImageEffectRenderer {
     let ier: ImageEffectRenderer = null;
 
@@ -106,6 +111,7 @@ export default class ImageEffectRenderer {
 
     ier.animationLoop = animationLoop;
     ier.container = container;
+    ier.canvasScale = canvasScale;
     container.appendChild(ier.canvas);
     ier.updateSize();
 
@@ -329,8 +335,11 @@ export default class ImageEffectRenderer {
   }
 
   public updateSize(): void {
-    this.canvas.width = this.container.offsetWidth;
-    this.canvas.height = this.container.offsetHeight;
+    this.canvas.width = this.container.offsetWidth * this.canvasScale;
+    this.canvas.height = this.container.offsetHeight * this.canvasScale;
+
+    this.canvas.style.width = `${this.container.offsetWidth}px`;
+    this.canvas.style.height = `${this.container.offsetHeight}px`;
   }
 
   private compileShader(fsSource: string): void {
