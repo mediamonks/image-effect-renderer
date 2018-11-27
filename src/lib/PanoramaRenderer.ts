@@ -23,9 +23,7 @@ class MouseListener extends sengDisposable {
   private resetSpeed: boolean = false;
 
   private touchMoveListener: any;
-  private touchStartListener: any;
   private endListener: any;
-  private mouseDownListener: any;
   private mouseMoveListener: any;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -36,44 +34,36 @@ class MouseListener extends sengDisposable {
       this.buttons.push(new MouseButton());
     }
 
-    this.touchStartListener = e => {
-      e.preventDefault();
-      this.resetSpeed = true;
-      this.setMouse(e.targetTouches[0]);
-      this.buttons[0].press = true;
-      for (let i = 0; i < this.mouseClickCallbacks.length; i++) {
-        this.mouseClickCallbacks[i].call(this);
-      }
-    };
-    this.touchMoveListener = e => {
-      this.setMouse(e.targetTouches[0]);
-    };
+    this.touchMoveListener = e => this.setMouse(e.targetTouches[0]);
+    this.mouseMoveListener = e => this.setMouse(e);
     this.endListener = () => {
       this.buttons[0].press = false;
     };
-    this.mouseDownListener = e => {
-      e.preventDefault();
-      this.resetSpeed = true;
-      this.buttons[e.which - 1].press = true;
-      this.setMouse(e);
-      for (let i = 0; i < this.mouseClickCallbacks.length; i++) {
-        this.mouseClickCallbacks[i].call(this);
-      }
-    };
-    this.mouseMoveListener = e => {
-      this.setMouse(e);
-    };
 
-    this.canvas.addEventListener('touchstart', this.touchStartListener, false);
+    this.canvas.addEventListener('touchstart', this.onMouseStart, false);
     this.canvas.addEventListener('touchmove', this.touchMoveListener, false);
     this.canvas.addEventListener('touchend', this.endListener, false);
     this.canvas.addEventListener('touchcancel', this.endListener, false);
-    this.canvas.addEventListener('mousedown', this.mouseDownListener, false);
+    this.canvas.addEventListener('mousedown', this.onMouseStart, false);
     this.canvas.addEventListener('mousemove', this.mouseMoveListener, false);
     this.canvas.addEventListener('mouseup', this.endListener, false);
     this.canvas.addEventListener('mousecancel', this.endListener, false);
     this.canvas.addEventListener('mouseout', this.endListener, false);
   }
+
+  private onMouseStart = (event: TouchEvent | MouseEvent): void => {
+    event.preventDefault();
+
+    const isTouch = event instanceof TouchEvent;
+    this.resetSpeed = true;
+
+    this.buttons[isTouch ? 0 : event.which - 1].press = true;
+    this.setMouse(isTouch ? (<TouchEvent>event).targetTouches[0] : event);
+
+    for (let i = 0; i < this.mouseClickCallbacks.length; i++) {
+      this.mouseClickCallbacks[i].call(this);
+    }
+  };
 
   private setMouse(event: any): void {
     this.mousePos[0] = event.pageX;
@@ -106,32 +96,32 @@ class MouseListener extends sengDisposable {
     // this section makes sure a drag is not used as a click
     // when the mouse is released after a press longer than 0.25 sec, it is not a click
     for (let i = 0; i < 3; i++) {
-      const btn: MouseButton = this.buttons[i];
-      btn.hit = false;
-      btn.down = false;
+      const button: MouseButton = this.buttons[i];
+      button.hit = false;
+      button.down = false;
 
       if (this.buttons[i].press) {
-        if (btn.downTime === 0) {
-          btn.down = true;
+        if (button.downTime === 0) {
+          button.down = true;
         }
-        btn.downTime++;
+        button.downTime++;
       } else {
-        btn.hit = btn.downTime < 15 && btn.oldDown;
-        btn.downTime = 0;
+        button.hit = button.downTime < 15 && button.oldDown;
+        button.downTime = 0;
       }
 
-      btn.oldDown = btn.press;
+      button.oldDown = button.press;
     }
   }
 
   dispose() {
     if (!this.isDisposed()) {
       if (this.canvas) {
-        this.canvas.removeEventListener('touchstart', this.touchStartListener, false);
+        this.canvas.removeEventListener('touchstart', this.onMouseStart, false);
         this.canvas.removeEventListener('touchmove', this.touchMoveListener, false);
         this.canvas.removeEventListener('touchend', this.endListener, false);
         this.canvas.removeEventListener('touchcancel', this.endListener, false);
-        this.canvas.removeEventListener('mousedown', this.mouseDownListener, false);
+        this.canvas.removeEventListener('mousedown', this.onMouseStart, false);
         this.canvas.removeEventListener('mousemove', this.mouseMoveListener, false);
         this.canvas.removeEventListener('mouseend', this.endListener, false);
         this.canvas.removeEventListener('mousecancel', this.endListener, false);
@@ -194,10 +184,6 @@ export default class PanoramaRenderer extends sengDisposable {
     this.play();
   }
 
-  public updateSize(): void {
-    this.imageEffectRender.updateSize();
-  }
-
   public play(): void {
     this.animationLoop = true;
     this.update();
@@ -205,6 +191,10 @@ export default class PanoramaRenderer extends sengDisposable {
 
   public pause(): void {
     this.animationLoop = false;
+  }
+
+  public updateSize(): void {
+    this.imageEffectRender.updateSize();
   }
 
   private update(): void {
@@ -252,32 +242,34 @@ export default class PanoramaRenderer extends sengDisposable {
   }
 
   private getShader(): string {
-    return `uniform vec2 uRotation;
+    return `
+      uniform vec2 uRotation;
 			uniform float uAspect;
 			uniform vec3 uFrustumCorner;
 			
 			vec2 getEqUV(vec3 rd)
-            {
-                vec2 uv = vec2(atan(rd.z, rd.x), asin(rd.y));
+      {
+        vec2 uv = vec2(atan(rd.z, rd.x), asin(rd.y));
 				uv *= vec2(0.1591,0.3183);
 				uv.y += 0.5;
 				return fract(uv);
-            }
-            mat2 getMatrix(float a)
+      }
+      mat2 getMatrix(float a)
 			{
 				float s = sin(a);
 				float c = cos(a);
 				return mat2(c, -s, s, c);
 			}
-            void mainImage( out vec4 c, vec2 p )
-            {
-                vec3 rd = vec3(vUV0 * 2. - 1., 1.) * uFrustumCorner;
-                rd = normalize(rd);
-                rd.yz *= getMatrix(-uRotation.y);
-                rd.xz *= getMatrix(uRotation.x);
-                c.xyz = texture(iChannel0, getEqUV(rd)).xyz;
-                c.w = 1.0;
-            }`;
+      void mainImage( out vec4 c, vec2 p )
+      {
+        vec3 rd = vec3(vUV0 * 2. - 1., 1.) * uFrustumCorner;
+        rd = normalize(rd);
+        rd.yz *= getMatrix(-uRotation.y);
+        rd.xz *= getMatrix(uRotation.x);
+        c.xyz = texture(iChannel0, getEqUV(rd)).xyz;
+        c.w = 1.0;
+      }
+    `;
   }
 
   private lerp(a: number, b: number, i: number): number {
