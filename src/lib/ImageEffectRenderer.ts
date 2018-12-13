@@ -160,7 +160,7 @@ export default class ImageEffectRenderer {
     clampHorizontal: boolean = true,
     clampVertical: boolean = true,
     flipY: boolean = false,
-	useMipMap: boolean = false,
+    useMipMap: boolean = false,
   ): void {
     if (slotIndex >= 4) {
       // console.log('ImageEffectRenderer: A maximum of 4 slots is available, slotIndex is out of bounds.');
