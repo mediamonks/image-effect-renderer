@@ -31,6 +31,13 @@
       outline: 10px solid rgba(255,255,255,0.05);
     }
 
+    .video {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      width: 25%;
+    }
+
     nav {
       padding-top: 30px;
     }
@@ -38,13 +45,15 @@
 </head>
 <body>
 
-<h2>Panorama</h2>
-<div class="panorama" data-className="panorama">
+<h2>Panorama Video</h2>
+<div class="panorama" data-className="360-video">
   <div class="canvas"></div>
   <nav>
     <button class="js-play">Play</button><button class="js-stop">Stop</button>
   </nav>
 </div>
+
+<video class="video js-video" src="static/360-video.mp4" muted loop />
 
 <script src="./bundle.js"></script>
 </body>

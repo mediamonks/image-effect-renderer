@@ -171,6 +171,17 @@ export default class ImageEffectRenderer {
 
     this.gl.useProgram(this.program);
     this.gl.uniform1i(this.gl.getUniformLocation(this.program, 'iChannel' + slotIndex), slotIndex);
+
+    this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY);
+  }
+
+  public updateImage(
+    image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement,
+    slotIndex: number,
+    clampHorizontal: boolean = true,
+    clampVertical: boolean = true,
+    flipY: boolean = false,
+  ): void {
     this.gl.uniform2f(
       this.gl.getUniformLocation(this.program, 'iChannelResolution' + slotIndex),
       image.width,

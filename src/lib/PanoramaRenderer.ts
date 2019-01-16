@@ -153,12 +153,13 @@ export default class PanoramaRenderer extends sengDisposable {
 
   constructor(
     canvasParent: HTMLElement,
-    panoramaPath: string,
+    image: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
     fovDegrees: number = 70,
     rotateInertia = 0.95,
     smoothness = 0.75,
   ) {
     super();
+
     this.inertia = rotateInertia;
     this.fovV = fovDegrees;
     this.smoothness = smoothness;
@@ -169,13 +170,8 @@ export default class PanoramaRenderer extends sengDisposable {
       false,
     );
 
-    const image = new Image();
-    image.crossOrigin = 'Anonymous';
-    image.src = panoramaPath;
-    image.onload = () => {
-      this.imageEffectRender.addImage(image, 0, false, true, true);
-      this.isReady = true;
-    };
+    this.imageEffectRender.addImage(image, 0, false, true, true);
+    this.isReady = true;
 
     this.mouseListener = new MouseListener(this.imageEffectRender.getCanvas());
   }
@@ -197,6 +193,14 @@ export default class PanoramaRenderer extends sengDisposable {
     this.imageEffectRender.updateSize();
   }
 
+  public updateImage(
+    image: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
+    clampHorizontal: boolean = true,
+    clampVertical: boolean = true,
+  ): void {
+    this.imageEffectRender.addImage(image, 0, clampHorizontal, clampVertical, true);
+  }
+
   private update(): void {
     if (this.isDisposed() || !this.animationLoop) return;
     if (this.isReady) {
@@ -207,7 +211,7 @@ export default class PanoramaRenderer extends sengDisposable {
       const aspect = c.width / c.height;
       const degToRad = Math.PI / 180;
       const z = 0.5 / Math.tan(this.fovV * (0.5 * degToRad));
-      const fovH = Math.atan2(aspect * 0.5, z) * (2 * 180 / 3.14159265359);
+      const fovH = Math.atan2(aspect * 0.5, z) * (2 * 180 / Math.PI);
 
       if (this.mouseListener.getMouseDown()) {
         const ms = this.mouseListener.getNormalizedVelocity();
