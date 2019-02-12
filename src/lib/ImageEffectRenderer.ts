@@ -31,7 +31,6 @@ export default class ImageEffectRenderer {
   // (global) context resource management
   private static IERActive: ImageEffectRenderer[] = [];
   private static IERPool: ImageEffectRenderer[] = [];
-  private activeIndex: number = -1;
 
   private container: HTMLElement;
   private animationLoop: boolean;
@@ -84,10 +83,9 @@ export default class ImageEffectRenderer {
 
     // before creating a context, determine if we already reached the maximum number of contexts
     if (ImageEffectRenderer.IERActive.length >= ImageEffectRenderer.MAX_IMAGE_EFFECT_RENDERERS) {
-      // console.error(`Maximum number of ImageEffectRenderer's reached;
-      // 		no new ImageEffectRendererer created.
-      // 		Clear other ImageEffectRenderer's before creating new ones.`);
-      return ier;
+      throw new Error(
+        `Maximum number of ImageEffectRenderer's reached, no new ImageEffectRenderer created`,
+      );
     }
 
     // determine if there's an ImageEffectRenderer in the IERPool and if so, re-use its context
@@ -141,7 +139,6 @@ export default class ImageEffectRenderer {
 
     // store current ImageEffectRenderer in the list of active IERs
     ImageEffectRenderer.IERActive.push(ier);
-    ier.activeIndex = ImageEffectRenderer.IERActive.length - 1;
 
     return ier;
   }
@@ -467,7 +464,12 @@ export default class ImageEffectRenderer {
     ier.canvas.parentNode.removeChild(ier.canvas);
 
     // remove from active IER instances
-    ImageEffectRenderer.IERActive.splice(ier.activeIndex, 1);
+    const index = ImageEffectRenderer.IERActive.indexOf(ier);
+    if (index > -1) {
+      ImageEffectRenderer.IERActive.splice(index, 1);
+    } else {
+      throw new Error(`Can't find the EffectRenderer in the active pool`);
+    }
 
     // add current instance to pool
     ImageEffectRenderer.IERPool.push(ier);
