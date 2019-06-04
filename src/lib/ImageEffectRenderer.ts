@@ -157,6 +157,7 @@ export default class ImageEffectRenderer {
     clampHorizontal: boolean = true,
     clampVertical: boolean = true,
     flipY: boolean = false,
+    useMipMap: boolean = false,
   ): void {
     if (slotIndex >= 4) {
       // console.log('ImageEffectRenderer: A maximum of 4 slots is available, slotIndex is out of bounds.');
@@ -204,9 +205,14 @@ export default class ImageEffectRenderer {
       this.gl.TEXTURE_2D,
       this.gl.TEXTURE_WRAP_T,
       clampVertical ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT,
-    );
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    );	
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    if (useMipMap) {
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+      this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    } else {
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    }
   }
 
   /**
