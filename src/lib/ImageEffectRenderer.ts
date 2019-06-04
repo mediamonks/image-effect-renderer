@@ -170,7 +170,7 @@ export default class ImageEffectRenderer {
     this.gl.useProgram(this.program);
     this.gl.uniform1i(this.gl.getUniformLocation(this.program, 'iChannel' + slotIndex), slotIndex);
 
-    this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY);
+    this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
   }
 
   public updateImage(
@@ -179,6 +179,7 @@ export default class ImageEffectRenderer {
     clampHorizontal: boolean = true,
     clampVertical: boolean = true,
     flipY: boolean = false,
+    useMipMap: boolean = false,
   ): void {
     this.gl.uniform2f(
       this.gl.getUniformLocation(this.program, 'iChannelResolution' + slotIndex),
@@ -205,10 +206,14 @@ export default class ImageEffectRenderer {
       this.gl.TEXTURE_2D,
       this.gl.TEXTURE_WRAP_T,
       clampVertical ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT,
-    );	
+    );
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     if (useMipMap) {
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D,
+        this.gl.TEXTURE_MIN_FILTER,
+        this.gl.LINEAR_MIPMAP_LINEAR,
+      );
       this.gl.generateMipmap(this.gl.TEXTURE_2D);
     } else {
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
