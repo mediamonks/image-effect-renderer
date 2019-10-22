@@ -1,4 +1,4 @@
-class ImageEffectRendererFrameBuffer {
+export class ImageEffectRendererFrameBuffer {
   // webgl
   private gl: WebGLRenderingContext;
   private width: number = 0;
