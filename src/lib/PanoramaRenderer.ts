@@ -147,6 +147,7 @@ export default class PanoramaRenderer extends sengDisposable {
   private inertia: number;
   private smoothness: number;
   private fovV: number;
+  private barrelDistortion: number = 0;
 
   private isReady: boolean = false;
   private animationLoop: boolean = false;
@@ -157,12 +158,14 @@ export default class PanoramaRenderer extends sengDisposable {
     fovDegrees: number = 70,
     rotateInertia = 0.95,
     smoothness = 0.75,
+    barrelDistortion = 0.25,
   ) {
     super();
 
     this.inertia = rotateInertia;
     this.fovV = fovDegrees;
     this.smoothness = smoothness;
+    this.barrelDistortion = barrelDistortion;
 
     this.imageEffectRender = ImageEffectRenderer.createTemporary(
       canvasParent,
@@ -198,7 +201,7 @@ export default class PanoramaRenderer extends sengDisposable {
     clampHorizontal: boolean = true,
     clampVertical: boolean = true,
   ): void {
-    this.imageEffectRender.addImage(image, 0, clampHorizontal, clampVertical, true);
+    this.imageEffectRender.updateImage(image, 0, clampHorizontal, clampVertical, true);
   }
 
   private update(): void {
@@ -236,7 +239,7 @@ export default class PanoramaRenderer extends sengDisposable {
       const width: number = height * aspect;
 
       this.imageEffectRender.setUniformVec3('uFrustumCorner', -width, height, 1);
-
+      this.imageEffectRender.setUniformFloat('uBarrelDistortion', this.barrelDistortion);
       this.imageEffectRender.setUniformFloat('uAspect', aspect);
 
       this.imageEffectRender.draw();
@@ -250,6 +253,7 @@ export default class PanoramaRenderer extends sengDisposable {
       uniform vec2 uRotation;
 			uniform float uAspect;
 			uniform vec3 uFrustumCorner;
+      uniform float uBarrelDistortion;
 			
 			vec2 getEqUV(vec3 rd)
       {
@@ -266,7 +270,10 @@ export default class PanoramaRenderer extends sengDisposable {
 			}
       void mainImage( out vec4 c, vec2 p )
       {
-        vec3 rd = vec3(vUV0 * 2. - 1., 1.) * uFrustumCorner;
+        vec2 uv = vUV0 * 2. - 1.;
+        float r2 = dot(uv,uv);
+        uv.xy *= 1.0 + uBarrelDistortion * r2;
+        vec3 rd = vec3(uv, 1.) * uFrustumCorner;
         rd = normalize(rd);
         rd.yz *= getMatrix(-uRotation.y);
         rd.xz *= getMatrix(uRotation.x);
