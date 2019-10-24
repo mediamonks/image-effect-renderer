@@ -56,6 +56,8 @@ renderer.addImage(image, 0);
 renderer.play();
 ```
 
+*Please use [seng-panoramarenderer](https://github.com/mediamonks/seng-panoramarenderer) instead*
+
 Simple Panorama example (make sure the images are preloaded first).
 ```ts
 import { PanoramaRenderer } from 'seng-effectrenderer';

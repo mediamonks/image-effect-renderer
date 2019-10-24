@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>ImageEffectRenderer example</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      background: #111;
+    }
+
+    body {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin: 0;
+      color: #fff;
+    }
+
+    .image-effect {
+      width: 600px;
+      height: 400px;
+      outline: 10px solid rgba(255,255,255,0.05);
+    }
+
+    input {
+      width: 50%;
+      max-width: 600px;
+      margin-top: 4em;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Flow Effect <small>(Click and drag on the image)</small></h2>
+<div class="image-effect" data-className="flow"></div>
+
+<script src="./bundle.js"></script>
+</body>
+</html>

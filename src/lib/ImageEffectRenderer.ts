@@ -91,6 +91,7 @@ export class ImageEffectRendererBuffer {
   // uniform
   private uniformGlobalTime: WebGLUniformLocation;
   private uniformTime: WebGLUniformLocation;
+  private uniformFrame: WebGLUniformLocation;
   private uniformResolution: WebGLUniformLocation;
 
   // buffers
@@ -310,6 +311,7 @@ export class ImageEffectRendererBuffer {
             uniform vec2 iResolution;
             uniform float iTime;
             uniform float iGlobalTime;
+            uniform int iFrame;
             uniform vec4 iMouse;
             
             uniform highp sampler2D iChannel0;
@@ -374,6 +376,10 @@ export class ImageEffectRendererBuffer {
       <WebGLProgram>this.program,
       'iResolution',
     );
+    this.uniformFrame = <WebGLUniformLocation>this.gl.getUniformLocation(
+      <WebGLProgram>this.program,
+      'iFrame',
+    );
   }
 
   public getSrc(): ImageEffectRendererFrameBuffer {
@@ -410,6 +416,7 @@ export class ImageEffectRendererBuffer {
     // global uniforms
     this.gl.uniform1f(this.uniformGlobalTime, time);
     this.gl.uniform1f(this.uniformTime, time);
+    this.gl.uniform1i(this.uniformFrame, this.frame);
     this.gl.uniform2f(this.uniformResolution, width, height);
 
     // texture/channel uniforms
