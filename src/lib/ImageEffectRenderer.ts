@@ -1,8 +1,8 @@
 export class ImageEffectRendererFrameBuffer {
   // webgl
   private gl: WebGLRenderingContext;
-  private width: number = 0;
-  private height: number = 0;
+  width: number = 0;
+  height: number = 0;
 
   private format: number = WebGLRenderingContext.RGBA;
   private type: number = WebGLRenderingContext.UNSIGNED_BYTE;
@@ -72,19 +72,59 @@ export class ImageEffectRendererFrameBuffer {
   }
 }
 
+enum ImageEffectRendererUniformType {
+  INT,
+  FLOAT,
+  VEC2,
+  VEC3,
+  VEC4,
+  MATRIX,
+}
+
+class ImageEffectRendererUniform {
+  public type: ImageEffectRendererUniformType;
+  public location: WebGLUniformLocation;
+  public x: number;
+  public y: number;
+  public z: number;
+  public w: number;
+  public matrix: Float32Array;
+
+  constructor(
+    type: ImageEffectRendererUniformType,
+    x: number,
+    y: number,
+    z: number,
+    w: number,
+    matrix: Float32Array | null,
+  ) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.w = w;
+    this.matrix = matrix;
+    this.type = type;
+  }
+}
+
 export class ImageEffectRendererBuffer {
+  private static cachedTextures: { [k: string]: WebGLTexture } = {};
+
   // webgl
   private gl: WebGLRenderingContext;
   public width: number = 0;
   public height: number = 0;
   private frame: number = 0;
 
+  // custom uniforms map
+  private uniforms: { [k: string]: ImageEffectRendererUniform } = {};
+
   // image input
   private textures: (WebGLTexture | ImageEffectRendererBuffer)[] = []; // <slotIndex> = texture ID
+  private texturesDynamic: boolean[] = [];
 
   // shader
   private program: WebGLProgram | null;
-  private shader: string;
   private posAttributeIndex: number;
   private uvAttributeIndex: number;
 
@@ -114,13 +154,13 @@ export class ImageEffectRendererBuffer {
     clampVertical: boolean = true,
     flipY: boolean = false,
     useMipMap: boolean = false,
+    dynamic: boolean = false,
   ): void {
     if (slotIndex >= 4) {
       throw new Error(
         'ImageEffectRenderer: A maximum of 4 slots is available, slotIndex is out of bounds.',
       );
     }
-
     if (this.textures[slotIndex]) {
       throw new Error(
         'ImageEffectRenderer: Image already added to slot ' +
@@ -129,21 +169,35 @@ export class ImageEffectRendererBuffer {
       );
     }
 
+    this.setUniformInt('iChannel' + slotIndex, slotIndex);
+    this.texturesDynamic[slotIndex] = true;
+
     if (image instanceof ImageEffectRendererBuffer) {
       this.textures[slotIndex] = image;
+      this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
+    } else if (image instanceof HTMLImageElement && !dynamic) {
+      this.texturesDynamic[slotIndex] = false;
+
+      // try to get cached texture
+      const key = image.src + '_' + clampHorizontal + clampVertical + flipY + useMipMap;
+      const cached = ImageEffectRendererBuffer.cachedTextures[key];
+
+      if (cached) {
+        this.textures[slotIndex] = cached;
+      } else {
+        this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+        this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
+
+        ImageEffectRendererBuffer.cachedTextures[key] = this.textures[slotIndex];
+      }
+      return;
     } else {
       this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+      this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
     }
-
-    this.gl.useProgram(this.program);
-    this.gl.uniform1i(
-      this.gl.getUniformLocation(<WebGLProgram>this.program, 'iChannel' + slotIndex),
-      slotIndex,
-    );
-
-    this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
   }
 
+  // prettier-ignore
   public updateImage(
     image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageEffectRendererBuffer,
     slotIndex: number,
@@ -153,210 +207,88 @@ export class ImageEffectRendererBuffer {
     useMipMap: boolean = false,
   ): void {
     if (image instanceof ImageEffectRendererBuffer) {
-      this.updateTexture(
-        image,
-        (<ImageEffectRendererBuffer>image).getSrc().getTexture(),
-        slotIndex,
-        clampHorizontal,
-        clampVertical,
-        useMipMap,
-      );
-      this.updateTexture(
-        image,
-        (<ImageEffectRendererBuffer>image).getDest().getTexture(),
-        slotIndex,
-        clampHorizontal,
-        clampVertical,
-        useMipMap,
-      );
+      this.updateTexture(image, slotIndex, (<ImageEffectRendererBuffer>image).getSrc().getTexture(), clampHorizontal, clampVertical, useMipMap);
+      this.updateTexture(image, slotIndex, (<ImageEffectRendererBuffer>image).getDest().getTexture(), clampHorizontal, clampVertical, useMipMap);
     } else {
+      if (!this.texturesDynamic[slotIndex]) {
+        this.texturesDynamic[slotIndex] = true;
+        this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+      }
+
       this.gl.bindTexture(this.gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
       this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, flipY ? 1 : 0);
-      this.gl.texImage2D(
-        this.gl.TEXTURE_2D,
-        0,
-        this.gl.RGBA,
-        this.gl.RGBA,
-        this.gl.UNSIGNED_BYTE,
-        image,
-      );
-      this.updateTexture(
-        image,
-        <WebGLTexture>this.textures[slotIndex],
-        slotIndex,
-        clampHorizontal,
-        clampVertical,
-        useMipMap,
-      );
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+      this.updateTexture(image, slotIndex, <WebGLTexture>this.textures[slotIndex], clampHorizontal, clampVertical, useMipMap);
     }
   }
 
+  // prettier-ignore
   private updateTexture(
     image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageEffectRendererBuffer,
-    texture: WebGLTexture,
     slotIndex: number,
+    texture: WebGLTexture,
     clampHorizontal: boolean = true,
     clampVertical: boolean = true,
     useMipMap: boolean = false,
   ): void {
+    this.setUniformVec2('iChannelResolution' + slotIndex, image.width, image.height);
+
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-    this.gl.uniform2f(
-      this.gl.getUniformLocation(<WebGLProgram>this.program, 'iChannelResolution' + slotIndex),
-      image.width,
-      image.height,
-    );
-    this.gl.texParameteri(
-      this.gl.TEXTURE_2D,
-      this.gl.TEXTURE_WRAP_S,
-      clampHorizontal ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT,
-    );
-    this.gl.texParameteri(
-      this.gl.TEXTURE_2D,
-      this.gl.TEXTURE_WRAP_T,
-      clampVertical ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT,
-    );
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, clampHorizontal ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, clampVertical ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     if (useMipMap) {
-      this.gl.texParameteri(
-        this.gl.TEXTURE_2D,
-        this.gl.TEXTURE_MIN_FILTER,
-        this.gl.LINEAR_MIPMAP_LINEAR,
-      );
+      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
       this.gl.generateMipmap(this.gl.TEXTURE_2D);
     } else {
       this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     }
   }
 
+  // prettier-ignore
+  private setUniform(name, type: ImageEffectRendererUniformType, x: number, y: number, z: number, w: number, matrix: Float32Array | null) {
+    if (!this.uniforms[name]) {
+      const uniform = new ImageEffectRendererUniform(type, x, y, z, w, matrix);
+      this.gl.useProgram(this.program);
+      uniform.location = this.gl.getUniformLocation(this.program, name);
+      if (uniform.location) {
+        this.uniforms[name] = uniform;
+      }
+    } else {
+      const uniform = this.uniforms[name];
+      if (uniform.type !== type) {
+        throw new Error('Updating uniform ' + name + ' using a different type.');
+      }
+      uniform.x = x, uniform.y = y, uniform.z = z, uniform.w = w, uniform.matrix = matrix;
+    }
+  }
+
   public setUniformFloat(name: string, value: number): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniform1f(this.gl.getUniformLocation(<WebGLProgram>this.program, name), value);
+    this.setUniform(name, ImageEffectRendererUniformType.FLOAT, value, 0, 0, 0, null);
   }
 
   public setUniformInt(name: string, value: number): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniform1i(this.gl.getUniformLocation(<WebGLProgram>this.program, name), value);
+    this.setUniform(name, ImageEffectRendererUniformType.INT, value, 0, 0, 0, null);
   }
 
   public setUniformVec2(name: string, x: number, y: number): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniform2f(this.gl.getUniformLocation(<WebGLProgram>this.program, name), x, y);
+    this.setUniform(name, ImageEffectRendererUniformType.VEC2, x, y, 0, 0, null);
   }
 
   public setUniformVec3(name: string, x: number, y: number, z: number): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniform3f(this.gl.getUniformLocation(<WebGLProgram>this.program, name), x, y, z);
+    this.setUniform(name, ImageEffectRendererUniformType.VEC3, x, y, z, 0, null);
   }
 
   public setUniformVec4(name: string, x: number, y: number, z: number, w: number): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniform4f(this.gl.getUniformLocation(<WebGLProgram>this.program, name), x, y, z, w);
+    this.setUniform(name, ImageEffectRendererUniformType.VEC4, x, y, z, w, null);
   }
 
   public setUniformMatrix(name: string, matrix: Float32Array): void {
-    this.gl.useProgram(this.program);
-    this.gl.uniformMatrix4fv(
-      this.gl.getUniformLocation(<WebGLProgram>this.program, name),
-      false,
-      matrix,
-    );
+    this.setUniform(name, ImageEffectRendererUniformType.MATRIX, 0, 0, 0, 0, matrix);
   }
 
-  public compileShader(fsSource: string): void {
-    if (this.shader !== fsSource) {
-      if (this.program) {
-        this.gl.deleteProgram(this.program);
-        this.program = null;
-      }
-      this.shader = fsSource;
-    } else {
-      return;
-    }
-
-    this.program = this.gl.createProgram();
-
-    const vs = <WebGLShader>this.gl.createShader(this.gl.VERTEX_SHADER);
-    const fs = <WebGLShader>this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-    // vertex shader
-    const vsSource: string = `
-            attribute vec2 aPos;
-            attribute vec2 aUV;
-            
-            varying vec2 vUV0;
-            
-            void main(void) {
-                vUV0 = aUV;
-                gl_Position = vec4(aPos, 0.0, 1.0);
-            }
-        `;
-    this.gl.shaderSource(vs, vsSource);
-    this.gl.compileShader(vs);
-
-    let success = this.gl.getShaderParameter(vs, this.gl.COMPILE_STATUS);
-    if (!success) {
-      throw new Error(
-        `ImageEffectRenderer: Vertex shader compilation failed: ${this.gl.getShaderInfoLog(vs)}`,
-      );
-    }
-
-    // fragment shader
-    const fsMainSource: string = `
-            #ifdef GL_ES
-                precision highp float;
-            #endif
-            
-            varying vec2 vUV0;
-            
-            uniform vec2 iResolution;
-            uniform float iTime;
-            uniform float iGlobalTime;
-            uniform int iFrame;
-            uniform vec4 iMouse;
-            
-            uniform highp sampler2D iChannel0;
-            uniform highp sampler2D iChannel1;
-            uniform highp sampler2D iChannel2;
-            uniform highp sampler2D iChannel3;
-            
-            uniform vec2 iChannelResolution0;
-            uniform vec2 iChannelResolution1;
-            uniform vec2 iChannelResolution2;
-            uniform vec2 iChannelResolution3;
-            
-            void mainImage(out vec4, vec2);
-            
-            vec4 texture(sampler2D tex, vec2 uv) {
-                return texture2D(tex, uv);
-            }
-            
-            void main(void) {
-            	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                mainImage(gl_FragColor, vUV0 * iResolution.xy);
-            }
-        `;
-    this.gl.shaderSource(fs, fsMainSource + fsSource);
-    this.gl.compileShader(fs);
-
-    success = this.gl.getShaderParameter(fs, this.gl.COMPILE_STATUS);
-    if (!success) {
-      throw new Error(
-        `ImageEffectRenderer: Shader compilation failed: ${this.gl.getShaderInfoLog(fs)}`,
-      );
-    }
-
-    // link shaders
-    this.gl.attachShader(<WebGLProgram>this.program, vs);
-    this.gl.attachShader(<WebGLProgram>this.program, fs);
-    this.gl.linkProgram(<WebGLProgram>this.program);
-
-    success = this.gl.getProgramParameter(<WebGLProgram>this.program, this.gl.LINK_STATUS);
-    if (!success) {
-      throw new Error(
-        `ImageEffectRenderer: Program linking failed: ${this.gl.getProgramInfoLog(<WebGLProgram>this
-          .program)}`,
-      );
-    }
+  public setProgram(program: WebGLProgram): void {
+    this.program = program;
 
     // get attribute locations
     this.posAttributeIndex = this.gl.getAttribLocation(<WebGLProgram>this.program, 'aPos');
@@ -380,6 +312,10 @@ export class ImageEffectRendererBuffer {
       <WebGLProgram>this.program,
       'iFrame',
     );
+  }
+
+  public getProgram(): WebGLProgram {
+    return this.program;
   }
 
   public getSrc(): ImageEffectRendererFrameBuffer {
@@ -413,19 +349,42 @@ export class ImageEffectRendererBuffer {
     this.gl.useProgram(this.program);
 
     // global uniforms
-    this.gl.uniform1f(this.uniformGlobalTime, time);
-    this.gl.uniform1f(this.uniformTime, time);
-    this.gl.uniform1i(this.uniformFrame, this.frame);
-    this.gl.uniform2f(this.uniformResolution, width, height);
+    if (this.uniformGlobalTime) this.gl.uniform1f(this.uniformGlobalTime, time);
+    if (this.uniformTime) this.gl.uniform1f(this.uniformTime, time);
+    if (this.uniformFrame) this.gl.uniform1i(this.uniformFrame, this.frame);
+    if (this.uniformResolution) this.gl.uniform2f(this.uniformResolution, width, height);
+
+    // custom uniforms
+    for (const k in this.uniforms) {
+      const u = this.uniforms[k];
+      switch (u.type) {
+        case ImageEffectRendererUniformType.INT:
+          this.gl.uniform1i(u.location, u.x);
+          break;
+        case ImageEffectRendererUniformType.FLOAT:
+          this.gl.uniform1f(u.location, u.x);
+          break;
+        case ImageEffectRendererUniformType.VEC2:
+          this.gl.uniform2f(u.location, u.x, u.y);
+          break;
+        case ImageEffectRendererUniformType.VEC3:
+          this.gl.uniform3f(u.location, u.x, u.y, u.z);
+          break;
+        case ImageEffectRendererUniformType.VEC4:
+          this.gl.uniform4f(u.location, u.x, u.y, u.z, u.w);
+          break;
+        case ImageEffectRendererUniformType.MATRIX:
+          this.gl.uniformMatrix4fv(u.location, false, u.matrix);
+          break;
+      }
+    }
 
     // texture/channel uniforms
     for (let slotIndex: number = 0; slotIndex < this.textures.length; ++slotIndex) {
       this.gl.activeTexture(this.gl.TEXTURE0 + slotIndex);
       if (this.textures[slotIndex] instanceof ImageEffectRendererBuffer) {
-        this.gl.bindTexture(
-          this.gl.TEXTURE_2D,
-          (<ImageEffectRendererBuffer>this.textures[slotIndex]).getSrc().getTexture(),
-        );
+        const src = (<ImageEffectRendererBuffer>this.textures[slotIndex]).getSrc();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, src.getTexture());
       } else {
         this.gl.bindTexture(this.gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
       }
@@ -449,18 +408,17 @@ export class ImageEffectRendererBuffer {
     this.frame++;
   }
 
-  public getShaderSource(): string {
-    return this.shader;
-  }
-
   public destruct() {
     for (const k in this.textures) {
       if (this.textures[k] instanceof ImageEffectRendererBuffer) {
       } else {
-        this.gl.deleteTexture(<WebGLTexture>this.textures[k]);
+        if (this.texturesDynamic[k]) {
+          this.gl.deleteTexture(<WebGLTexture>this.textures[k]);
+        }
       }
     }
     this.textures = [];
+    this.uniforms = {};
 
     if (this.frameBuffer0) {
       this.frameBuffer0.destruct();
@@ -484,6 +442,9 @@ export default class ImageEffectRenderer {
   private static sharedQuadVBO: WebGLBuffer;
   private static sharedTime: number = 0;
 
+  // share resources
+  private static ShaderPool: { [k: string]: WebGLShader } = {};
+
   // webgl
   private canvas: HTMLCanvasElement;
   private context: CanvasRenderingContext2D;
@@ -493,6 +454,7 @@ export default class ImageEffectRenderer {
   private top: number = 0;
   private width: number = 0;
   private height: number = 0;
+  private tickFunc: () => void | null = null;
 
   // control
   private time: number = 0;
@@ -570,28 +532,9 @@ export default class ImageEffectRenderer {
   ): ImageEffectRenderer {
     let ier: ImageEffectRenderer;
 
-    // before creating a context, determine if we already reached the maximum number of contexts
-    // if (ImageEffectRenderer.IERActive.length >= ImageEffectRenderer.MAX_IMAGE_EFFECT_RENDERERS) {
-    //   throw new Error(
-    //     `Maximum number of ImageEffectRenderer's reached, no new ImageEffectRenderer created`,
-    //   );
-    // }
-
-    // determine if there's an ImageEffectRenderer in the IERPool and if so, re-use its context
     if (ImageEffectRenderer.IERPool.length > 0) {
-      // first look for same shader
-      let sameShaderFound = false;
-      for (let i = 0; i < ImageEffectRenderer.IERPool.length; i++) {
-        if (ImageEffectRenderer.IERPool[i].mainBuffer.getShaderSource() === shader) {
-          ier = ImageEffectRenderer.IERPool[i];
-          ImageEffectRenderer.IERPool.splice(i, 1);
-          sameShaderFound = true;
-        }
-      }
-      if (!sameShaderFound) {
-        ier = ImageEffectRenderer.IERPool[0];
-        ImageEffectRenderer.IERPool.splice(0, 1);
-      }
+      ier = ImageEffectRenderer.IERPool[0];
+      ImageEffectRenderer.IERPool.splice(0, 1);
     } else {
       ier = new ImageEffectRenderer(container, animationLoop, true);
     }
@@ -608,13 +551,15 @@ export default class ImageEffectRenderer {
     if (!ier.mainBuffer) {
       ier.mainBuffer = new ImageEffectRendererBuffer(ier.gl);
     }
-    ier.mainBuffer.compileShader(shader);
+    ier.mainBuffer.setProgram(ImageEffectRenderer.compileShader(shader));
 
     ier.width = ier.canvas.width;
     ier.height = ier.canvas.height;
 
     // store current ImageEffectRenderer in the list of active IERs
     ImageEffectRenderer.IERActive.push(ier);
+    // sort based on program
+    ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
 
     return ier;
   }
@@ -675,30 +620,116 @@ export default class ImageEffectRenderer {
     return { width: newWidth, height: newHeight, left: this.left + this.width, top: this.top };
   }
 
+  // prettier-ignore
   private drawInstance(dt: number): void {
     if (!this.drawOneFrame) {
       this.time += dt / 1000;
+    }
+    if (this.tickFunc) {
+      this.tickFunc();
     }
 
     // update buffers
     for (const k in this.buffers) {
       this.gl.viewport(0, 0, this.width, this.height);
-      this.buffers[k].draw(
-        ImageEffectRenderer.sharedQuadVBO,
-        this.time,
-        this.canvas.width,
-        this.canvas.height,
-      );
+      this.buffers[k].draw(ImageEffectRenderer.sharedQuadVBO, this.time, this.canvas.width, this.canvas.height);
     }
 
     this.gl.viewport(this.left, this.top, this.width, this.height);
+    this.mainBuffer.draw(ImageEffectRenderer.sharedQuadVBO, this.time, this.canvas.width, this.canvas.height);
+  }
 
-    this.mainBuffer.draw(
-      ImageEffectRenderer.sharedQuadVBO,
-      this.time,
-      this.canvas.width,
-      this.canvas.height,
-    );
+  private static compileShader(fsSource: string) {
+    if (ImageEffectRenderer.ShaderPool[fsSource]) {
+      return ImageEffectRenderer.ShaderPool[fsSource];
+    }
+    const gl = ImageEffectRenderer.sharedGL;
+    const program = gl.createProgram();
+
+    const vs = <WebGLShader>gl.createShader(gl.VERTEX_SHADER);
+    const fs = <WebGLShader>gl.createShader(gl.FRAGMENT_SHADER);
+
+    // vertex shader
+    const vsSource: string = `
+            attribute vec2 aPos;
+            attribute vec2 aUV;
+            
+            varying vec2 vUV0;
+            
+            void main(void) {
+                vUV0 = aUV;
+                gl_Position = vec4(aPos, 0.0, 1.0);
+            }
+        `;
+    gl.shaderSource(vs, vsSource);
+    gl.compileShader(vs);
+
+    let success = gl.getShaderParameter(vs, gl.COMPILE_STATUS);
+    if (!success) {
+      throw new Error(
+        `ImageEffectRenderer: Vertex shader compilation failed: ${gl.getShaderInfoLog(vs)}`,
+      );
+    }
+
+    // fragment shader
+    const fsMainSource: string = `
+            #ifdef GL_ES
+                precision highp float;
+            #endif
+            
+            varying vec2 vUV0;
+            
+            uniform vec2 iResolution;
+            uniform float iTime;
+            uniform float iGlobalTime;
+            uniform int iFrame;
+            uniform vec4 iMouse;
+            
+            uniform highp sampler2D iChannel0;
+            uniform highp sampler2D iChannel1;
+            uniform highp sampler2D iChannel2;
+            uniform highp sampler2D iChannel3;
+            
+            uniform vec2 iChannelResolution0;
+            uniform vec2 iChannelResolution1;
+            uniform vec2 iChannelResolution2;
+            uniform vec2 iChannelResolution3;
+            
+            void mainImage(out vec4, vec2);
+            
+            vec4 texture(sampler2D tex, vec2 uv) {
+                return texture2D(tex, uv);
+            }
+            
+            void main(void) {
+            	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                mainImage(gl_FragColor, vUV0 * iResolution.xy);
+            }
+        `;
+    gl.shaderSource(fs, fsMainSource + fsSource);
+    gl.compileShader(fs);
+
+    success = gl.getShaderParameter(fs, gl.COMPILE_STATUS);
+    if (!success) {
+      throw new Error(`ImageEffectRenderer: Shader compilation failed: ${gl.getShaderInfoLog(fs)}`);
+    }
+
+    // link shaders
+    gl.attachShader(<WebGLProgram>program, vs);
+    gl.attachShader(<WebGLProgram>program, fs);
+    gl.linkProgram(<WebGLProgram>program);
+
+    success = gl.getProgramParameter(<WebGLProgram>program, gl.LINK_STATUS);
+    if (!success) {
+      throw new Error(
+        `ImageEffectRenderer: Program linking failed: ${gl.getProgramInfoLog(
+          <WebGLProgram>program,
+        )}`,
+      );
+    }
+    ImageEffectRenderer.ShaderPool[fsSource] = program;
+
+    return program;
   }
 
   private copyCanvas(): void {
@@ -714,6 +745,10 @@ export default class ImageEffectRenderer {
       this.width,
       this.height,
     );
+  }
+
+  protected order(): number {
+    return <number>this.mainBuffer.getProgram();
   }
 
   /**
@@ -760,7 +795,7 @@ export default class ImageEffectRenderer {
       this.buffers[i].destruct();
     }
     this.buffers[i] = new ImageEffectRendererBuffer(this.gl, type);
-    this.buffers[i].compileShader(shader);
+    this.buffers[i].setProgram(ImageEffectRenderer.compileShader(shader));
     return this.buffers[i];
   }
 
@@ -786,26 +821,9 @@ export default class ImageEffectRenderer {
   }
 
   private static generateNDCQuad(): void {
-    // prettier-ignore
     const gl = ImageEffectRenderer.sharedGL;
-    const vertices: Float32Array = new Float32Array([
-      -1,
-      1,
-      0,
-      1,
-      -1,
-      -1,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      -1,
-      1,
-      0,
-    ]);
+    // prettier-ignore
+    const vertices: Float32Array = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]);
     ImageEffectRenderer.sharedQuadVBO = <WebGLBuffer>gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, ImageEffectRenderer.sharedQuadVBO);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
@@ -838,8 +856,17 @@ export default class ImageEffectRenderer {
     clampVertical: boolean = true,
     flipY: boolean = false,
     useMipMap: boolean = false,
+    dynamic: boolean = false,
   ): void {
-    this.mainBuffer.addImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
+    this.mainBuffer.addImage(
+      image,
+      slotIndex,
+      clampHorizontal,
+      clampVertical,
+      flipY,
+      useMipMap,
+      dynamic,
+    );
   }
 
   /**
@@ -861,6 +888,14 @@ export default class ImageEffectRenderer {
     useMipMap: boolean = false,
   ): void {
     this.mainBuffer.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
+  }
+
+  /**
+   * Set a callback that is called everytime the EffectRenderer is drawn
+   * @param tick: () => void
+   */
+  public tick(tick: () => void) {
+    this.tickFunc = tick;
   }
 
   /**
@@ -908,6 +943,11 @@ export default class ImageEffectRenderer {
     this.mainBuffer.setUniformVec4(name, x, y, z, w);
   }
 
+  /**
+   * Set a Uniform matrix variable used in the Shader
+   * @param name: string
+   * @param value: Float32Array
+   */
   public setUniformMatrix(name: string, matrix: Float32Array): void {
     this.mainBuffer.setUniformMatrix(name, matrix);
   }
@@ -918,6 +958,7 @@ export default class ImageEffectRenderer {
     }
     this.buffers = [];
     this.mainBuffer.destruct();
+    this.tickFunc = null;
   }
 
   /**
@@ -942,5 +983,8 @@ export default class ImageEffectRenderer {
 
     // add current instance to pool
     ImageEffectRenderer.IERPool.push(ier);
+
+    // sort based on program
+    ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
   }
 }

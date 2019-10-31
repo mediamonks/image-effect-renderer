@@ -53,17 +53,14 @@ export default class FlowBuffer {
       this.mouseDown = false;
     };
 
-    this.tick();
+    this.renderer.tick( () => {
+      this.renderer.getBuffer(0).setUniformVec4('uMouse', this.mouseX, this.mouseY, this.prevMouseX, this.prevMouseY);
+      this.renderer.getBuffer(0).setUniformFloat('uMouseDown', this.mouseDown ? 1 : 0);
+    } );
   }
 
   private init(images: Array<HTMLImageElement>): void {
     this.renderer.addImage(images[0], 0);
     this.renderer.play();
-  }
-
-  private tick() {
-    window.requestAnimationFrame(() => this.tick());
-    this.renderer.getBuffer(0).setUniformVec4('uMouse', this.mouseX, this.mouseY, this.prevMouseX, this.prevMouseY);
-    this.renderer.getBuffer(0).setUniformFloat('uMouseDown', this.mouseDown ? 1 : 0);
   }
 }
