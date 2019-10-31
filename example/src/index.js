@@ -4,6 +4,7 @@ import RepeatingEffect from './examples/RepeatingEffect';
 import Panorama from './examples/Panorama';
 import PanoramaVideo from './examples/PanoramaVideo';
 import FlowBuffer from './examples/FlowBuffer';
+import MultipleInstances from './examples/MultipleInstances';
 
 const imageEffectWrapper = document.querySelector('.image-effect');
 const panoramaWrapper = document.querySelector('.panorama');
@@ -22,6 +23,9 @@ if (imageEffectWrapper) {
       break;
     case 'flow':
       new FlowBuffer(imageEffectWrapper);
+      break;
+    case 'multiple':
+      new MultipleInstances(imageEffectWrapper);
       break;
     default:
       throw new Error(`Can't find a class with name: ${name}`);

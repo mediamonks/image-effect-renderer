@@ -2,7 +2,7 @@ import { ImageEffectRenderer } from '../../../src/';
 import ImageLoader from '../utils/ImageLoader';
 const glitch = require('../shader/glitch.glsl');
 
-export default class ImageEffectExample {
+export default class RepeatingEffect {
   private wrapper: HTMLElement;
   private renderer: ImageEffectRenderer;
 

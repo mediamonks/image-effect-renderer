@@ -1,7 +1,7 @@
 import { ImageEffectRenderer } from '../../../src/';
 const wolfenstein = require('../shader/wolfenstein.glsl');
 
-export default class ImageEffectExample {
+export default class Wolfenstein {
   private wrapper: HTMLElement;
   private renderer: ImageEffectRenderer;
 

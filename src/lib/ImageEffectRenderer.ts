@@ -332,7 +332,7 @@ export class ImageEffectRendererBuffer {
             
             void main(void) {
             	gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-                mainImage(gl_FragColor, gl_FragCoord.xy);
+                mainImage(gl_FragColor, vUV0 * iResolution.xy);
             }
         `;
     this.gl.shaderSource(fs, fsMainSource + fsSource);
@@ -407,10 +407,9 @@ export class ImageEffectRendererBuffer {
     if (fb) {
       fb.resize(this.width, this.height);
       this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb.getFrameBuffer());
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }
 
-    // clear
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.gl.useProgram(this.program);
 
     // global uniforms
@@ -476,28 +475,31 @@ export class ImageEffectRendererBuffer {
 }
 
 export default class ImageEffectRenderer {
-  public static MAX_IMAGE_EFFECT_RENDERERS: number = 10;
-
-  // webgl
-  private canvas: HTMLCanvasElement;
-  private gl: WebGLRenderingContext;
-  private width: number = 0;
-  private height: number = 0;
-
-  // quad
-  private quadVBO: WebGLBuffer;
-
-  // control
-  private requestAnimationID: number;
-  private time: number = 0;
-
   // (global) context resource management
   private static IERActive: ImageEffectRenderer[] = [];
   private static IERPool: ImageEffectRenderer[] = [];
 
-  private container: HTMLElement;
-  private animationLoop: boolean;
+  private static sharedCanvas: HTMLCanvasElement;
+  private static sharedGL: WebGLRenderingContext;
+  private static sharedQuadVBO: WebGLBuffer;
+  private static sharedTime: number = 0;
 
+  // webgl
+  private canvas: HTMLCanvasElement;
+  private context: CanvasRenderingContext2D;
+  private gl: WebGLRenderingContext;
+
+  private left: number = 0;
+  private top: number = 0;
+  private width: number = 0;
+  private height: number = 0;
+
+  // control
+  private time: number = 0;
+  private animationLoop: boolean = true;
+  private drawOneFrame: boolean = false;
+
+  private container: HTMLElement;
   private canvasScale: number = 1;
 
   private mainBuffer: ImageEffectRendererBuffer;
@@ -522,14 +524,33 @@ export default class ImageEffectRenderer {
     this.container = container;
     this.animationLoop = animationLoop;
 
-    this.canvas = document.createElement('canvas');
-    this.gl = <WebGLRenderingContext>this.canvas.getContext('experimental-webgl', {
-      premultipliedAlpha: true,
-    });
+    if (!ImageEffectRenderer.sharedCanvas) {
+      const canvas = (ImageEffectRenderer.sharedCanvas = document.createElement('canvas'));
+      ImageEffectRenderer.sharedGL = <WebGLRenderingContext>canvas.getContext(
+        'experimental-webgl',
+        {
+          premultipliedAlpha: true,
+        },
+      );
+      if (!ImageEffectRenderer.sharedGL) {
+        throw new Error('ImageEffectRenderer: Failed to request a 3D context, aborting...');
+      }
+      ImageEffectRenderer.generateNDCQuad();
+      ImageEffectRenderer.drawInstances(0);
 
-    if (!this.gl) {
-      throw new Error('ImageEffectRenderer: Failed to request a 3D context, aborting...');
+      const gl = ImageEffectRenderer.sharedGL;
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+      canvas.style.display = 'none';
+      document.body.appendChild(canvas);
     }
+
+    this.canvas = document.createElement('canvas');
+    this.context = this.canvas.getContext('2d');
+    this.gl = ImageEffectRenderer.sharedGL;
   }
 
   /**
@@ -550,11 +571,11 @@ export default class ImageEffectRenderer {
     let ier: ImageEffectRenderer;
 
     // before creating a context, determine if we already reached the maximum number of contexts
-    if (ImageEffectRenderer.IERActive.length >= ImageEffectRenderer.MAX_IMAGE_EFFECT_RENDERERS) {
-      throw new Error(
-        `Maximum number of ImageEffectRenderer's reached, no new ImageEffectRenderer created`,
-      );
-    }
+    // if (ImageEffectRenderer.IERActive.length >= ImageEffectRenderer.MAX_IMAGE_EFFECT_RENDERERS) {
+    //   throw new Error(
+    //     `Maximum number of ImageEffectRenderer's reached, no new ImageEffectRenderer created`,
+    //   );
+    // }
 
     // determine if there's an ImageEffectRenderer in the IERPool and if so, re-use its context
     if (ImageEffectRenderer.IERPool.length > 0) {
@@ -576,27 +597,18 @@ export default class ImageEffectRenderer {
     }
 
     ier.animationLoop = animationLoop;
+    ier.drawOneFrame = true;
+    ier.time = 0;
     ier.container = container;
     ier.canvasScale = canvasScale;
+
     container.appendChild(ier.canvas);
     ier.updateSize();
-
-    if (!ier.quadVBO) {
-      ier.generateNDCQuad();
-    }
 
     if (!ier.mainBuffer) {
       ier.mainBuffer = new ImageEffectRendererBuffer(ier.gl);
     }
     ier.mainBuffer.compileShader(shader);
-
-    // gl configuration
-    ier.gl.clearColor(0, 0, 0, 0);
-    ier.gl.viewport(0, 0, ier.canvas.width, ier.canvas.height);
-    ier.gl.clear(ier.gl.COLOR_BUFFER_BIT);
-
-    ier.gl.enable(ier.gl.BLEND);
-    ier.gl.blendFunc(ier.gl.ONE, ier.gl.ONE_MINUS_SRC_ALPHA);
 
     ier.width = ier.canvas.width;
     ier.height = ier.canvas.height;
@@ -605,6 +617,103 @@ export default class ImageEffectRenderer {
     ImageEffectRenderer.IERActive.push(ier);
 
     return ier;
+  }
+
+  private static drawInstances(time: number): void {
+    window.requestAnimationFrame(time => this.drawInstances(time));
+
+    const dt = time - ImageEffectRenderer.sharedTime;
+    ImageEffectRenderer.sharedTime = time;
+
+    const canvas = ImageEffectRenderer.sharedCanvas;
+    const pool = ImageEffectRenderer.IERActive;
+    let dim = { width: 0, height: 0, left: 0, top: 0 };
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        dim = pool[i].calculateSheetPosition(dim.width, dim.height, dim.left, dim.top);
+      }
+    }
+
+    if (dim.width > canvas.width || dim.height > canvas.height) {
+      canvas.width = dim.width;
+      canvas.height = dim.height;
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        pool[i].drawInstance(dt);
+      }
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        pool[i].copyCanvas();
+        pool[i].drawOneFrame = false;
+      }
+    }
+  }
+
+  private calculateSheetPosition(width: number, height: number, left: number, top: number) {
+    // determine if screen has been resized. If so, adjust viewport
+    if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
+      this.width = this.canvas.width;
+      this.height = this.canvas.height;
+    }
+    // find position in stylesheet
+    if (left < Math.max(2048, width - this.width)) {
+      this.left = left;
+      this.top = top;
+    } else {
+      this.left = 0;
+      this.top = height;
+    }
+
+    const newHeight = Math.max(height, this.top + this.height);
+    const newWidth = Math.max(width, this.left + this.width);
+
+    return { width: newWidth, height: newHeight, left: this.left + this.width, top: this.top };
+  }
+
+  private drawInstance(dt: number): void {
+    if (!this.drawOneFrame) {
+      this.time += dt / 1000;
+    }
+
+    // update buffers
+    for (const k in this.buffers) {
+      this.gl.viewport(0, 0, this.width, this.height);
+      this.buffers[k].draw(
+        ImageEffectRenderer.sharedQuadVBO,
+        this.time,
+        this.canvas.width,
+        this.canvas.height,
+      );
+    }
+
+    this.gl.viewport(this.left, this.top, this.width, this.height);
+
+    this.mainBuffer.draw(
+      ImageEffectRenderer.sharedQuadVBO,
+      this.time,
+      this.canvas.width,
+      this.canvas.height,
+    );
+  }
+
+  private copyCanvas(): void {
+    const canvas = ImageEffectRenderer.sharedCanvas;
+    this.context.drawImage(
+      ImageEffectRenderer.sharedCanvas,
+      this.left,
+      canvas.height - this.height - this.top,
+      this.width,
+      this.height,
+      0,
+      0,
+      this.width,
+      this.height,
+    );
   }
 
   /**
@@ -618,21 +727,14 @@ export default class ImageEffectRenderer {
    * Play the animationFrame loop
    */
   public play(): void {
-    if (!this.requestAnimationID) {
-      this.animationLoop = true;
-      this.draw(0);
-    }
+    this.animationLoop = true;
   }
 
   /**
    * Stop the animationFrame loop
    */
   public stop(): void {
-    if (this.requestAnimationID) {
-      window.cancelAnimationFrame(this.requestAnimationID);
-      this.requestAnimationID = 0;
-      this.animationLoop = false;
-    }
+    this.animationLoop = false;
   }
 
   /**
@@ -683,12 +785,30 @@ export default class ImageEffectRenderer {
     this.canvas.style.height = `${this.container.offsetHeight}px`;
   }
 
-  private generateNDCQuad(): void {
+  private static generateNDCQuad(): void {
     // prettier-ignore
-    const vertices: Float32Array = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]);
-    this.quadVBO = <WebGLBuffer>this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVBO);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+    const gl = ImageEffectRenderer.sharedGL;
+    const vertices: Float32Array = new Float32Array([
+      -1,
+      1,
+      0,
+      1,
+      -1,
+      -1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      -1,
+      1,
+      0,
+    ]);
+    ImageEffectRenderer.sharedQuadVBO = <WebGLBuffer>gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, ImageEffectRenderer.sharedQuadVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   }
 
   /**
@@ -698,24 +818,7 @@ export default class ImageEffectRenderer {
    */
   public draw(time: number = 0): void {
     this.time = time / 1000;
-
-    // determine if screen has been resized. If so, adjust viewport
-    if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
-      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-      this.width = this.canvas.width;
-      this.height = this.canvas.height;
-    }
-
-    // update buffers
-    for (const k in this.buffers) {
-      this.buffers[k].draw(this.quadVBO, this.time, this.canvas.width, this.canvas.height);
-    }
-
-    this.mainBuffer.draw(this.quadVBO, this.time, this.canvas.width, this.canvas.height);
-
-    if (this.animationLoop) {
-      this.requestAnimationID = window.requestAnimationFrame(time => this.draw(time));
-    }
+    this.drawOneFrame = true;
   }
 
   /**
