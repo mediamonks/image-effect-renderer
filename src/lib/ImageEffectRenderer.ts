@@ -107,6 +107,7 @@ class ImageEffectRendererUniform {
   }
 }
 
+// prettier-ignore
 export class ImageEffectRendererBuffer {
   private static cachedTextures: { [k: string]: WebGLTexture } = {};
 
@@ -157,16 +158,10 @@ export class ImageEffectRendererBuffer {
     dynamic: boolean = false,
   ): void {
     if (slotIndex >= 4) {
-      throw new Error(
-        'ImageEffectRenderer: A maximum of 4 slots is available, slotIndex is out of bounds.',
-      );
+      throw new Error('ImageEffectRenderer: A maximum of 4 slots is available, slotIndex is out of bounds.');
     }
     if (this.textures[slotIndex]) {
-      throw new Error(
-        'ImageEffectRenderer: Image already added to slot ' +
-          slotIndex +
-          '. Use updateImage if you want to update an existing slot.',
-      );
+      throw new Error('ImageEffectRenderer: Image already added to slot ' + slotIndex + '. Use updateImage if you want to update an existing slot.');
     }
 
     this.setUniformInt('iChannel' + slotIndex, slotIndex);
@@ -197,7 +192,6 @@ export class ImageEffectRendererBuffer {
     }
   }
 
-  // prettier-ignore
   public updateImage(
     image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageEffectRendererBuffer,
     slotIndex: number,
@@ -222,7 +216,6 @@ export class ImageEffectRendererBuffer {
     }
   }
 
-  // prettier-ignore
   private updateTexture(
     image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | ImageEffectRendererBuffer,
     slotIndex: number,
@@ -245,7 +238,25 @@ export class ImageEffectRendererBuffer {
     }
   }
 
-  // prettier-ignore
+  private static lastQuadVBO: WebGLBuffer | null = null;
+
+  private drawQuadVBO(quadVBO: WebGLBuffer): void {
+    if (ImageEffectRendererBuffer.lastQuadVBO !== quadVBO) {
+      ImageEffectRendererBuffer.lastQuadVBO = quadVBO;
+
+      // render NDC quad
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, quadVBO);
+      this.gl.enableVertexAttribArray(this.posAttributeIndex);
+
+      // 4 32-bit values = 4 4-byte values
+      this.gl.vertexAttribPointer(this.posAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 0);
+
+      this.gl.enableVertexAttribArray(this.uvAttributeIndex);
+      this.gl.vertexAttribPointer(this.uvAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 2 * 4);
+    }
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+  }
+
   private setUniform(name, type: ImageEffectRendererUniformType, x: number, y: number, z: number, w: number, matrix: Float32Array | null) {
     if (!this.uniforms[name]) {
       const uniform = new ImageEffectRendererUniform(type, x, y, z, w, matrix);
@@ -296,22 +307,10 @@ export class ImageEffectRendererBuffer {
 
     // get uniform locations
     this.gl.useProgram(this.program);
-    this.uniformGlobalTime = <WebGLUniformLocation>this.gl.getUniformLocation(
-      <WebGLProgram>this.program,
-      'iGlobalTime',
-    );
-    this.uniformTime = <WebGLUniformLocation>this.gl.getUniformLocation(
-      <WebGLProgram>this.program,
-      'iTime',
-    );
-    this.uniformResolution = <WebGLUniformLocation>this.gl.getUniformLocation(
-      <WebGLProgram>this.program,
-      'iResolution',
-    );
-    this.uniformFrame = <WebGLUniformLocation>this.gl.getUniformLocation(
-      <WebGLProgram>this.program,
-      'iFrame',
-    );
+    this.uniformGlobalTime = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iGlobalTime');
+    this.uniformTime = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iTime');
+    this.uniformResolution = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iResolution');
+    this.uniformFrame = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iFrame');
   }
 
   public getProgram(): WebGLProgram {
@@ -391,16 +390,7 @@ export class ImageEffectRendererBuffer {
     }
 
     // render NDC quad
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, quadVBO);
-    this.gl.enableVertexAttribArray(this.posAttributeIndex);
-
-    // 4 32-bit values = 4 4-byte values
-    this.gl.vertexAttribPointer(this.posAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 0);
-
-    this.gl.enableVertexAttribArray(this.uvAttributeIndex);
-    this.gl.vertexAttribPointer(this.uvAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 2 * 4);
-
-    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+    this.drawQuadVBO(quadVBO);
 
     if (fb) {
       this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
@@ -432,6 +422,7 @@ export class ImageEffectRendererBuffer {
   }
 }
 
+// prettier-ignore
 export default class ImageEffectRenderer {
   // (global) context resource management
   private static IERActive: ImageEffectRenderer[] = [];
@@ -488,12 +479,9 @@ export default class ImageEffectRenderer {
 
     if (!ImageEffectRenderer.sharedCanvas) {
       const canvas = (ImageEffectRenderer.sharedCanvas = document.createElement('canvas'));
-      ImageEffectRenderer.sharedGL = <WebGLRenderingContext>canvas.getContext(
-        'experimental-webgl',
-        {
-          premultipliedAlpha: true,
-        },
-      );
+      ImageEffectRenderer.sharedGL = <WebGLRenderingContext>canvas.getContext('experimental-webgl', { premultipliedAlpha: true });
+      canvas.width = 512;
+      canvas.height = 512;
       if (!ImageEffectRenderer.sharedGL) {
         throw new Error('ImageEffectRenderer: Failed to request a 3D context, aborting...');
       }
@@ -606,7 +594,7 @@ export default class ImageEffectRenderer {
       this.height = this.canvas.height;
     }
     // find position in stylesheet
-    if (left < Math.max(2048, width - this.width)) {
+    if (left < Math.max(2048 - this.width, width - this.width)) {
       this.left = left;
       this.top = top;
     } else {
@@ -734,17 +722,7 @@ export default class ImageEffectRenderer {
 
   private copyCanvas(): void {
     const canvas = ImageEffectRenderer.sharedCanvas;
-    this.context.drawImage(
-      ImageEffectRenderer.sharedCanvas,
-      this.left,
-      canvas.height - this.height - this.top,
-      this.width,
-      this.height,
-      0,
-      0,
-      this.width,
-      this.height,
-    );
+    this.context.drawImage(ImageEffectRenderer.sharedCanvas, this.left, canvas.height - this.height - this.top, this.width, this.height, 0, 0, this.width, this.height);
   }
 
   protected order(): number {
@@ -822,7 +800,6 @@ export default class ImageEffectRenderer {
 
   private static generateNDCQuad(): void {
     const gl = ImageEffectRenderer.sharedGL;
-    // prettier-ignore
     const vertices: Float32Array = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]);
     ImageEffectRenderer.sharedQuadVBO = <WebGLBuffer>gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, ImageEffectRenderer.sharedQuadVBO);
@@ -858,15 +835,7 @@ export default class ImageEffectRenderer {
     useMipMap: boolean = false,
     dynamic: boolean = false,
   ): void {
-    this.mainBuffer.addImage(
-      image,
-      slotIndex,
-      clampHorizontal,
-      clampVertical,
-      flipY,
-      useMipMap,
-      dynamic,
-    );
+    this.mainBuffer.addImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap, dynamic);
   }
 
   /**
