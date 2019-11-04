@@ -422,7 +422,8 @@ export class ImageEffectRendererBuffer {
   }
 }
 
-class ImageEffectRendererWebGLInstance {
+// prettier-ignore
+export class ImageEffectRendererWebGLInstance {
   public gl: WebGLRenderingContext;
   public canvas: HTMLCanvasElement;
   public quadVBO: WebGLBuffer;
@@ -450,24 +451,7 @@ class ImageEffectRendererWebGLInstance {
 
   private generateNDCQuad(): void {
     const gl = this.gl;
-    const vertices: Float32Array = new Float32Array([
-      -1,
-      1,
-      0,
-      1,
-      -1,
-      -1,
-      0,
-      0,
-      1,
-      1,
-      1,
-      1,
-      1,
-      -1,
-      1,
-      0,
-    ]);
+    const vertices: Float32Array = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]);
     this.quadVBO = <WebGLBuffer>gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVBO);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
