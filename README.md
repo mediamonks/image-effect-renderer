@@ -10,8 +10,6 @@ Provides functionality for easily insert WebGL shaders in your application.
 Provides an _ImageEffectRenderer_ that can handle simple WebGL shaders.
 The _ImageEffectRenderer_ has a method to add up to 4 images on layers, which you can use to create effects with.
 
-It also provides a _PanoramaRenderer_ for displaying simple image panorama's
-
 _ImageEffectRenderer_ supports the most common variables used in [Shadertoy](https://www.shadertoy.com).
 This makes it easy to use base effects from that website.
 
@@ -38,7 +36,6 @@ const renderer = ImageEffectRenderer.createTemporary(
   shader,
   true,
 );
-renderer.play();
 ```
 
 Add an image you can apply the shader to. This can have 4 layers of images to read from the shader (make sure the images are preloaded first).
@@ -49,21 +46,25 @@ import shader from './shader.glsl';
 const renderer = ImageEffectRenderer.createTemporary(
   wrapperElement,
   shader,
-  true,
+  false,
 );
 
 renderer.addImage(image, 0);
 renderer.play();
 ```
 
-*Please use [seng-panoramarenderer](https://github.com/mediamonks/seng-panoramarenderer) instead*
+### Shared WebGL Context
 
-Simple Panorama example (make sure the images are preloaded first).
+All ImageEffectRenderers share by default one WebGLContext. If you have only one ImageEffectRenderer on a page, or if you create a large ImageEffectRenderer (i.e. fullscreen),
+ the ImageEffectRenderer will probably run faster if you create it having its own WebGLContext:
+
 ```ts
-import { PanoramaRenderer } from 'seng-effectrenderer';
-
-const renderer = new PanoramaRenderer(wrapperElement, imageSrc);
-renderer.init();
+const renderer = ImageEffectRenderer.createTemporary(
+  wrapperElement,
+  shader,
+  true,
+  true, // Create a separate WebGLContext for this specific ImageEffectRenderer
+);
 ```
 
 For more examples, please check the examples directory.

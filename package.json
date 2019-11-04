@@ -1,6 +1,6 @@
 {
   "name": "seng-effectrenderer",
-  "version": "v0.4.3",
+  "version": "v1.0.0",
   "description": "Description",
   "main": "./index.js",
   "types": "./index.d.ts",

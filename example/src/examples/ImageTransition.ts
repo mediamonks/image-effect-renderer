@@ -1,6 +1,7 @@
-import { TweenLite, Linear } from 'gsap';
+import { Linear, TweenLite } from 'gsap';
 import { ImageEffectRenderer } from '../../../src/';
 import ImageLoader from '../utils/ImageLoader';
+
 const smoothstep = require('../shader/smoothstep.glsl');
 
 export default class ImageEffectExample {
@@ -9,17 +10,17 @@ export default class ImageEffectExample {
   private wrapper: HTMLElement;
   private renderer: ImageEffectRenderer;
 
-  private currentFrame:number = 0;
+  private currentFrame: number = 0;
 
   constructor(wrapper: HTMLElement) {
     this.wrapper = wrapper;
 
-    this.renderer = ImageEffectRenderer.createTemporary(this.wrapper, smoothstep, false);
+    this.renderer = ImageEffectRenderer.createTemporary(this.wrapper, smoothstep, false, true);
 
     ImageLoader.loadImages(['example.jpg', 'transition.jpg']).then(this.init.bind(this));
   }
 
-  private init(images: Array<HTMLImageElement>):void {
+  private init(images: Array<HTMLImageElement>): void {
     this.renderer.addImage(images[0], 0);
     this.renderer.addImage(images[1], 1);
 
@@ -35,12 +36,12 @@ export default class ImageEffectExample {
     playButton.addEventListener('click', () => this.playRange(parseInt(range.max, 10), range));
   }
 
-  private drawCurrentFrame():void {
+  private drawCurrentFrame(): void {
     this.renderer.setUniformFloat('delta', this.currentFrame / ImageEffectExample.MAX_ANIMATION_FRAMES);
     this.renderer.draw();
   }
 
-  private playRange(to: number, rangeInput: HTMLInputElement):void {
+  private playRange(to: number, rangeInput: HTMLInputElement): void {
     this.currentFrame = this.currentFrame === to ? 0 : this.currentFrame;
     TweenLite.to(this, Math.max(0, to - this.currentFrame) / 25, {
       currentFrame: to,

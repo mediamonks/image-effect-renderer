@@ -18,11 +18,10 @@ export default class FlowBuffer {
   constructor(wrapper: HTMLElement) {
     this.wrapper = wrapper;
 
-    this.renderer = ImageEffectRenderer.createTemporary(this.wrapper, flow_image, true);
+    this.renderer = ImageEffectRenderer.createTemporary(this.wrapper, flow_image, false);
     this.renderer.addBuffer(0, flow_buffer);
     this.renderer.getBuffer(0).addImage(this.renderer.getBuffer(0), 0);
     this.renderer.addImage(this.renderer.getBuffer(0), 1);
-    this.renderer.stop();
 
     ImageLoader.loadImages(['example.jpg']).then(this.init.bind(this));
 

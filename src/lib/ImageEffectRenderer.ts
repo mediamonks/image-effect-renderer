@@ -109,10 +109,8 @@ class ImageEffectRendererUniform {
 
 // prettier-ignore
 export class ImageEffectRendererBuffer {
-  private static cachedTextures: { [k: string]: WebGLTexture } = {};
-
   // webgl
-  private gl: WebGLRenderingContext;
+  private glInstance: ImageEffectRendererWebGLInstance;
   public width: number = 0;
   public height: number = 0;
   private frame: number = 0;
@@ -139,12 +137,12 @@ export class ImageEffectRendererBuffer {
   private frameBuffer0: ImageEffectRendererFrameBuffer | null;
   private frameBuffer1: ImageEffectRendererFrameBuffer | null;
 
-  constructor(gl: WebGLRenderingContext, type: number = -1) {
-    this.gl = gl;
+  constructor(glInstance: ImageEffectRendererWebGLInstance, type: number = -1) {
+    this.glInstance = glInstance;
 
     if (type >= 0) {
-      this.frameBuffer0 = new ImageEffectRendererFrameBuffer(gl, type);
-      this.frameBuffer1 = new ImageEffectRendererFrameBuffer(gl, type);
+      this.frameBuffer0 = new ImageEffectRendererFrameBuffer(glInstance.gl, type);
+      this.frameBuffer1 = new ImageEffectRendererFrameBuffer(glInstance.gl, type);
     }
   }
 
@@ -175,19 +173,19 @@ export class ImageEffectRendererBuffer {
 
       // try to get cached texture
       const key = image.src + '_' + clampHorizontal + clampVertical + flipY + useMipMap;
-      const cached = ImageEffectRendererBuffer.cachedTextures[key];
+      const cached = this.glInstance.SharedTextures[key];
 
       if (cached) {
         this.textures[slotIndex] = cached;
       } else {
-        this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+        this.textures[slotIndex] = <WebGLTexture>this.glInstance.gl.createTexture();
         this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
 
-        ImageEffectRendererBuffer.cachedTextures[key] = this.textures[slotIndex];
+        this.glInstance.SharedTextures[key] = this.textures[slotIndex];
       }
       return;
     } else {
-      this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+      this.textures[slotIndex] = <WebGLTexture>this.glInstance.gl.createTexture();
       this.updateImage(image, slotIndex, clampHorizontal, clampVertical, flipY, useMipMap);
     }
   }
@@ -200,18 +198,19 @@ export class ImageEffectRendererBuffer {
     flipY: boolean = false,
     useMipMap: boolean = false,
   ): void {
+    const gl = this.glInstance.gl;
+
     if (image instanceof ImageEffectRendererBuffer) {
       this.updateTexture(image, slotIndex, (<ImageEffectRendererBuffer>image).getSrc().getTexture(), clampHorizontal, clampVertical, useMipMap);
       this.updateTexture(image, slotIndex, (<ImageEffectRendererBuffer>image).getDest().getTexture(), clampHorizontal, clampVertical, useMipMap);
     } else {
       if (!this.texturesDynamic[slotIndex]) {
         this.texturesDynamic[slotIndex] = true;
-        this.textures[slotIndex] = <WebGLTexture>this.gl.createTexture();
+        this.textures[slotIndex] = <WebGLTexture>gl.createTexture();
       }
-
-      this.gl.bindTexture(this.gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
-      this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, flipY ? 1 : 0);
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+      gl.bindTexture(gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY ? 1 : 0);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       this.updateTexture(image, slotIndex, <WebGLTexture>this.textures[slotIndex], clampHorizontal, clampVertical, useMipMap);
     }
   }
@@ -224,44 +223,46 @@ export class ImageEffectRendererBuffer {
     clampVertical: boolean = true,
     useMipMap: boolean = false,
   ): void {
+    const gl = this.glInstance.gl;
+
     this.setUniformVec2('iChannelResolution' + slotIndex, image.width, image.height);
 
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, clampHorizontal ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, clampVertical ? this.gl.CLAMP_TO_EDGE : this.gl.REPEAT);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, clampHorizontal ? gl.CLAMP_TO_EDGE : gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, clampVertical ? gl.CLAMP_TO_EDGE : gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     if (useMipMap) {
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-      this.gl.generateMipmap(this.gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
     } else {
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     }
   }
 
-  private static lastQuadVBO: WebGLBuffer | null = null;
+  private drawQuad(): void {
+    const gl = this.glInstance.gl;
 
-  private drawQuadVBO(quadVBO: WebGLBuffer): void {
-    if (ImageEffectRendererBuffer.lastQuadVBO !== quadVBO) {
-      ImageEffectRendererBuffer.lastQuadVBO = quadVBO;
+    if (this.glInstance.lastQuadVBO !== this.glInstance.quadVBO) {
+      this.glInstance.lastQuadVBO = this.glInstance.quadVBO;
 
       // render NDC quad
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, quadVBO);
-      this.gl.enableVertexAttribArray(this.posAttributeIndex);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.glInstance.quadVBO);
+      gl.enableVertexAttribArray(this.posAttributeIndex);
 
       // 4 32-bit values = 4 4-byte values
-      this.gl.vertexAttribPointer(this.posAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 0);
+      gl.vertexAttribPointer(this.posAttributeIndex, 2, gl.FLOAT, false, 4 * 4, 0);
 
-      this.gl.enableVertexAttribArray(this.uvAttributeIndex);
-      this.gl.vertexAttribPointer(this.uvAttributeIndex, 2, this.gl.FLOAT, false, 4 * 4, 2 * 4);
+      gl.enableVertexAttribArray(this.uvAttributeIndex);
+      gl.vertexAttribPointer(this.uvAttributeIndex, 2, gl.FLOAT, false, 4 * 4, 2 * 4);
     }
-    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
   private setUniform(name, type: ImageEffectRendererUniformType, x: number, y: number, z: number, w: number, matrix: Float32Array | null) {
     if (!this.uniforms[name]) {
       const uniform = new ImageEffectRendererUniform(type, x, y, z, w, matrix);
-      this.gl.useProgram(this.program);
-      uniform.location = this.gl.getUniformLocation(this.program, name);
+      this.glInstance.gl.useProgram(this.program);
+      uniform.location = this.glInstance.gl.getUniformLocation(this.program, name);
       if (uniform.location) {
         this.uniforms[name] = uniform;
       }
@@ -299,18 +300,19 @@ export class ImageEffectRendererBuffer {
   }
 
   public setProgram(program: WebGLProgram): void {
+    const gl = this.glInstance.gl;
     this.program = program;
 
     // get attribute locations
-    this.posAttributeIndex = this.gl.getAttribLocation(<WebGLProgram>this.program, 'aPos');
-    this.uvAttributeIndex = this.gl.getAttribLocation(<WebGLProgram>this.program, 'aUV');
+    this.posAttributeIndex = gl.getAttribLocation(<WebGLProgram>this.program, 'aPos');
+    this.uvAttributeIndex = gl.getAttribLocation(<WebGLProgram>this.program, 'aUV');
 
     // get uniform locations
-    this.gl.useProgram(this.program);
-    this.uniformGlobalTime = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iGlobalTime');
-    this.uniformTime = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iTime');
-    this.uniformResolution = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iResolution');
-    this.uniformFrame = <WebGLUniformLocation>this.gl.getUniformLocation(<WebGLProgram>this.program, 'iFrame');
+    gl.useProgram(this.program);
+    this.uniformGlobalTime = <WebGLUniformLocation>gl.getUniformLocation(<WebGLProgram>this.program, 'iGlobalTime');
+    this.uniformTime = <WebGLUniformLocation>gl.getUniformLocation(<WebGLProgram>this.program, 'iTime');
+    this.uniformResolution = <WebGLUniformLocation>gl.getUniformLocation(<WebGLProgram>this.program, 'iResolution');
+    this.uniformFrame = <WebGLUniformLocation>gl.getUniformLocation(<WebGLProgram>this.program, 'iFrame');
   }
 
   public getProgram(): WebGLProgram {
@@ -329,81 +331,79 @@ export class ImageEffectRendererBuffer {
       : this.frameBuffer1);
   }
 
-  /**
-   * Draw the new Canvas Frame, can be used to manually update the canvas when a Uniform has changed
-   *
-   * @param time
-   */
-  public draw(quadVBO: WebGLBuffer, time: number = 0, width: number, height: number): void {
+  public draw(time: number = 0, width: number, height: number): void {
+    const gl = this.glInstance.gl;
     this.width = width | 0;
     this.height = height | 0;
 
     const fb = this.getDest();
     if (fb) {
       fb.resize(this.width, this.height);
-      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb.getFrameBuffer());
-      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb.getFrameBuffer());
+      gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
-    this.gl.useProgram(this.program);
+    gl.useProgram(this.program);
 
     // global uniforms
-    if (this.uniformGlobalTime) this.gl.uniform1f(this.uniformGlobalTime, time);
-    if (this.uniformTime) this.gl.uniform1f(this.uniformTime, time);
-    if (this.uniformFrame) this.gl.uniform1i(this.uniformFrame, this.frame);
-    if (this.uniformResolution) this.gl.uniform2f(this.uniformResolution, width, height);
+    if (this.uniformGlobalTime) gl.uniform1f(this.uniformGlobalTime, time);
+    if (this.uniformTime) gl.uniform1f(this.uniformTime, time);
+    if (this.uniformFrame) gl.uniform1i(this.uniformFrame, this.frame);
+    if (this.uniformResolution) gl.uniform2f(this.uniformResolution, width, height);
 
     // custom uniforms
     for (const k in this.uniforms) {
       const u = this.uniforms[k];
       switch (u.type) {
         case ImageEffectRendererUniformType.INT:
-          this.gl.uniform1i(u.location, u.x);
+          gl.uniform1i(u.location, u.x);
           break;
         case ImageEffectRendererUniformType.FLOAT:
-          this.gl.uniform1f(u.location, u.x);
+          gl.uniform1f(u.location, u.x);
           break;
         case ImageEffectRendererUniformType.VEC2:
-          this.gl.uniform2f(u.location, u.x, u.y);
+          gl.uniform2f(u.location, u.x, u.y);
           break;
         case ImageEffectRendererUniformType.VEC3:
-          this.gl.uniform3f(u.location, u.x, u.y, u.z);
+          gl.uniform3f(u.location, u.x, u.y, u.z);
           break;
         case ImageEffectRendererUniformType.VEC4:
-          this.gl.uniform4f(u.location, u.x, u.y, u.z, u.w);
+          gl.uniform4f(u.location, u.x, u.y, u.z, u.w);
           break;
         case ImageEffectRendererUniformType.MATRIX:
-          this.gl.uniformMatrix4fv(u.location, false, u.matrix);
+          gl.uniformMatrix4fv(u.location, false, u.matrix);
           break;
       }
     }
 
     // texture/channel uniforms
     for (let slotIndex: number = 0; slotIndex < this.textures.length; ++slotIndex) {
-      this.gl.activeTexture(this.gl.TEXTURE0 + slotIndex);
+      gl.activeTexture(gl.TEXTURE0 + slotIndex);
       if (this.textures[slotIndex] instanceof ImageEffectRendererBuffer) {
         const src = (<ImageEffectRendererBuffer>this.textures[slotIndex]).getSrc();
-        this.gl.bindTexture(this.gl.TEXTURE_2D, src.getTexture());
+        gl.bindTexture(gl.TEXTURE_2D, src.getTexture());
       } else {
-        this.gl.bindTexture(this.gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
+        gl.bindTexture(gl.TEXTURE_2D, <WebGLTexture>this.textures[slotIndex]);
       }
     }
 
     // render NDC quad
-    this.drawQuadVBO(quadVBO);
+    this.drawQuad();
 
     if (fb) {
-      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     this.frame++;
   }
 
   public destruct() {
+    const gl = this.glInstance.gl;
+
     for (const k in this.textures) {
       if (this.textures[k] instanceof ImageEffectRendererBuffer) {
       } else {
         if (this.texturesDynamic[k]) {
-          this.gl.deleteTexture(<WebGLTexture>this.textures[k]);
+          gl.deleteTexture(<WebGLTexture>this.textures[k]);
         }
       }
     }
@@ -422,216 +422,62 @@ export class ImageEffectRendererBuffer {
   }
 }
 
-// prettier-ignore
-export default class ImageEffectRenderer {
-  // (global) context resource management
-  private static IERActive: ImageEffectRenderer[] = [];
-  private static IERPool: ImageEffectRenderer[] = [];
-
-  private static sharedCanvas: HTMLCanvasElement;
-  private static sharedGL: WebGLRenderingContext;
-  private static sharedQuadVBO: WebGLBuffer;
-  private static sharedTime: number = 0;
+class ImageEffectRendererWebGLInstance {
+  public gl: WebGLRenderingContext;
+  public canvas: HTMLCanvasElement;
+  public quadVBO: WebGLBuffer;
+  public lastQuadVBO: WebGLBuffer | null = null;
 
   // share resources
-  private static ShaderPool: { [k: string]: WebGLShader } = {};
+  public ShaderPool: { [k: string]: WebGLShader } = {};
+  public SharedTextures: { [k: string]: WebGLTexture } = {};
 
-  // webgl
-  private canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
-  private gl: WebGLRenderingContext;
+  constructor() {
+    const canvas = document.createElement('canvas');
+    this.canvas = canvas;
+    this.gl = <WebGLRenderingContext>canvas.getContext('experimental-webgl', {
+      premultipliedAlpha: true,
+    });
 
-  private left: number = 0;
-  private top: number = 0;
-  private width: number = 0;
-  private height: number = 0;
-  private tickFunc: () => void | null = null;
+    this.gl.clearColor(0, 0, 0, 0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.ONE, this.gl.ONE_MINUS_SRC_ALPHA);
 
-  // control
-  private time: number = 0;
-  private animationLoop: boolean = true;
-  private drawOneFrame: boolean = false;
-
-  private container: HTMLElement;
-  private canvasScale: number = 1;
-
-  private mainBuffer: ImageEffectRendererBuffer;
-  private buffers: ImageEffectRendererBuffer[] = [];
-
-  /**
-   * Requires a HTMLCanvasElement and a shader program as a plain text string
-   *
-   * @param container
-   * @param shader
-   * @param _animationLoop
-   */
-  constructor(
-    container: HTMLElement,
-    animationLoop: boolean = false,
-    createTemporaryUsed: boolean = false,
-  ) {
-    if (!createTemporaryUsed) {
-      throw new Error('Use ImageEffectRenderer.createTemporary to create a ImageEffectRenderer');
-    }
-
-    this.container = container;
-    this.animationLoop = animationLoop;
-
-    if (!ImageEffectRenderer.sharedCanvas) {
-      const canvas = (ImageEffectRenderer.sharedCanvas = document.createElement('canvas'));
-      ImageEffectRenderer.sharedGL = <WebGLRenderingContext>canvas.getContext('experimental-webgl', { premultipliedAlpha: true });
-      canvas.width = 512;
-      canvas.height = 512;
-      if (!ImageEffectRenderer.sharedGL) {
-        throw new Error('ImageEffectRenderer: Failed to request a 3D context, aborting...');
-      }
-      ImageEffectRenderer.generateNDCQuad();
-      ImageEffectRenderer.drawInstances(0);
-
-      const gl = ImageEffectRenderer.sharedGL;
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
-      canvas.style.display = 'none';
-      document.body.appendChild(canvas);
-    }
-
-    this.canvas = document.createElement('canvas');
-    this.context = this.canvas.getContext('2d');
-    this.gl = ImageEffectRenderer.sharedGL;
+    this.canvas = canvas;
+    this.generateNDCQuad();
   }
 
-  /**
-   * Create a GL canvas object and stores it in a Pool because we can't have unlimited gl contexts.
-   *
-   * @param container: HTMLElement and the wrapper of the canvas. Canvas will size based on this element
-   * @param shader: Plain text shader that is applied
-   * @param animationLoop: Boolean to automatically play the animationFrame to update the canvas
-   * @param canvasScale: Number to scale up/down the real canvas size. Can be used to shrink the canvas and render
-   * less pixels, which should result in faster rendering.
-   */
-  public static createTemporary(
-    container: HTMLElement,
-    shader: string,
-    animationLoop: boolean = false,
-    canvasScale: number = 1,
-  ): ImageEffectRenderer {
-    let ier: ImageEffectRenderer;
-
-    if (ImageEffectRenderer.IERPool.length > 0) {
-      ier = ImageEffectRenderer.IERPool[0];
-      ImageEffectRenderer.IERPool.splice(0, 1);
-    } else {
-      ier = new ImageEffectRenderer(container, animationLoop, true);
-    }
-
-    ier.animationLoop = animationLoop;
-    ier.drawOneFrame = true;
-    ier.time = 0;
-    ier.container = container;
-    ier.canvasScale = canvasScale;
-
-    container.appendChild(ier.canvas);
-    ier.updateSize();
-
-    if (!ier.mainBuffer) {
-      ier.mainBuffer = new ImageEffectRendererBuffer(ier.gl);
-    }
-    ier.mainBuffer.setProgram(ImageEffectRenderer.compileShader(shader));
-
-    ier.width = ier.canvas.width;
-    ier.height = ier.canvas.height;
-
-    // store current ImageEffectRenderer in the list of active IERs
-    ImageEffectRenderer.IERActive.push(ier);
-    // sort based on program
-    ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
-
-    return ier;
+  private generateNDCQuad(): void {
+    const gl = this.gl;
+    const vertices: Float32Array = new Float32Array([
+      -1,
+      1,
+      0,
+      1,
+      -1,
+      -1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      -1,
+      1,
+      0,
+    ]);
+    this.quadVBO = <WebGLBuffer>gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   }
 
-  private static drawInstances(time: number): void {
-    window.requestAnimationFrame(time => this.drawInstances(time));
-
-    const dt = time - ImageEffectRenderer.sharedTime;
-    ImageEffectRenderer.sharedTime = time;
-
-    const canvas = ImageEffectRenderer.sharedCanvas;
-    const pool = ImageEffectRenderer.IERActive;
-    let dim = { width: 0, height: 0, left: 0, top: 0 };
-
-    for (let i = 0; i < pool.length; i++) {
-      if (pool[i].animationLoop || pool[i].drawOneFrame) {
-        dim = pool[i].calculateSheetPosition(dim.width, dim.height, dim.left, dim.top);
-      }
+  public compileShader(fsSource: string) {
+    if (this.ShaderPool[fsSource]) {
+      return this.ShaderPool[fsSource];
     }
-
-    if (dim.width > canvas.width || dim.height > canvas.height) {
-      canvas.width = dim.width;
-      canvas.height = dim.height;
-    }
-
-    for (let i = 0; i < pool.length; i++) {
-      if (pool[i].animationLoop || pool[i].drawOneFrame) {
-        pool[i].drawInstance(dt);
-      }
-    }
-
-    for (let i = 0; i < pool.length; i++) {
-      if (pool[i].animationLoop || pool[i].drawOneFrame) {
-        pool[i].copyCanvas();
-        pool[i].drawOneFrame = false;
-      }
-    }
-  }
-
-  private calculateSheetPosition(width: number, height: number, left: number, top: number) {
-    // determine if screen has been resized. If so, adjust viewport
-    if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
-      this.width = this.canvas.width;
-      this.height = this.canvas.height;
-    }
-    // find position in stylesheet
-    if (left < Math.max(2048 - this.width, width - this.width)) {
-      this.left = left;
-      this.top = top;
-    } else {
-      this.left = 0;
-      this.top = height;
-    }
-
-    const newHeight = Math.max(height, this.top + this.height);
-    const newWidth = Math.max(width, this.left + this.width);
-
-    return { width: newWidth, height: newHeight, left: this.left + this.width, top: this.top };
-  }
-
-  // prettier-ignore
-  private drawInstance(dt: number): void {
-    if (!this.drawOneFrame) {
-      this.time += dt / 1000;
-    }
-    if (this.tickFunc) {
-      this.tickFunc();
-    }
-
-    // update buffers
-    for (const k in this.buffers) {
-      this.gl.viewport(0, 0, this.width, this.height);
-      this.buffers[k].draw(ImageEffectRenderer.sharedQuadVBO, this.time, this.canvas.width, this.canvas.height);
-    }
-
-    this.gl.viewport(this.left, this.top, this.width, this.height);
-    this.mainBuffer.draw(ImageEffectRenderer.sharedQuadVBO, this.time, this.canvas.width, this.canvas.height);
-  }
-
-  private static compileShader(fsSource: string) {
-    if (ImageEffectRenderer.ShaderPool[fsSource]) {
-      return ImageEffectRenderer.ShaderPool[fsSource];
-    }
-    const gl = ImageEffectRenderer.sharedGL;
+    const gl = this.gl;
     const program = gl.createProgram();
 
     const vs = <WebGLShader>gl.createShader(gl.VERTEX_SHADER);
@@ -715,14 +561,233 @@ export default class ImageEffectRenderer {
         )}`,
       );
     }
-    ImageEffectRenderer.ShaderPool[fsSource] = program;
+    this.ShaderPool[fsSource] = program;
 
     return program;
   }
+}
+
+// prettier-ignore
+export default class ImageEffectRenderer {
+  // (global) context resource management
+  private static IERActive: ImageEffectRenderer[] = [];
+  private static IERPool: ImageEffectRenderer[] = [];
+
+  private static IEROWNActive: ImageEffectRenderer[] = [];
+  private static IEROWNPool: ImageEffectRenderer[] = [];
+
+  private static sharedInstance: ImageEffectRendererWebGLInstance;
+  private static sharedTime: number = 0;
+
+  // webgl
+  private useOwnGLInstance: boolean = false;
+  private glInstance: ImageEffectRendererWebGLInstance;
+  private canvas: HTMLCanvasElement;
+  private context: CanvasRenderingContext2D;
+
+  private left: number = 0;
+  private top: number = 0;
+  private width: number = 0;
+  private height: number = 0;
+  private tickFunc: () => void | null = null;
+
+  // control
+  private time: number = 0;
+  private animationLoop: boolean = true;
+  private drawOneFrame: boolean = false;
+  private animationRequestId: number = 0;
+
+  private container: HTMLElement;
+  private canvasScale: number = 1;
+
+  private mainBuffer: ImageEffectRendererBuffer;
+  private buffers: ImageEffectRendererBuffer[] = [];
+
+  /**
+   * Requires a HTMLCanvasElement and a shader program as a plain text string
+   *
+   * @param container
+   * @param shader
+   * @param _animationLoop
+   * @param _useOwnGLContext
+   */
+  constructor(
+    container: HTMLElement,
+    animationLoop: boolean = false,
+    useOwnGLInstance: boolean = false,
+    createTemporaryUsed: boolean = false,
+  ) {
+    if (!createTemporaryUsed) {
+      throw new Error('Use ImageEffectRenderer.createTemporary to create a ImageEffectRenderer');
+    }
+
+    this.container = container;
+    this.animationLoop = animationLoop;
+    this.useOwnGLInstance = useOwnGLInstance;
+
+    if (!useOwnGLInstance && !ImageEffectRenderer.sharedInstance) {
+      ImageEffectRenderer.sharedInstance = new ImageEffectRendererWebGLInstance();
+      ImageEffectRenderer.drawInstances(0);
+    }
+
+    if (this.useOwnGLInstance) {
+      this.glInstance = new ImageEffectRendererWebGLInstance();
+      this.canvas = this.glInstance.canvas;
+    } else {
+      this.canvas = document.createElement('canvas');
+      this.context = this.canvas.getContext('2d');
+      this.glInstance = ImageEffectRenderer.sharedInstance;
+    }
+  }
+
+  /**
+   * Create a GL canvas object and stores it in a Pool because we can't have unlimited gl contexts.
+   *
+   * @param container: HTMLElement and the wrapper of the canvas. Canvas will size based on this element
+   * @param shader: Plain text shader that is applied
+   * @param animationLoop: Boolean to automatically play the animationFrame to update the canvas
+   * @param canvasScale: Number to scale up/down the real canvas size. Can be used to shrink the canvas and render
+   * less pixels, which should result in faster rendering.
+   */
+  public static createTemporary(
+    container: HTMLElement,
+    shader: string,
+    animationLoop: boolean = false,
+    useOwnGLInstance: boolean = false,
+    canvasScale: number = 1,
+  ): ImageEffectRenderer {
+    let ier: ImageEffectRenderer;
+
+    if (!useOwnGLInstance && ImageEffectRenderer.IERPool.length > 0) {
+      ier = ImageEffectRenderer.IERPool.pop();
+    } else if (useOwnGLInstance && ImageEffectRenderer.IEROWNPool.length > 0) {
+      ier = ImageEffectRenderer.IEROWNPool.pop();
+    } else {
+      ier = new ImageEffectRenderer(container, animationLoop, useOwnGLInstance, true);
+    }
+
+    ier.animationLoop = animationLoop;
+    ier.drawOneFrame = true;
+    ier.time = 0;
+    ier.container = container;
+    ier.canvasScale = canvasScale;
+
+    container.appendChild(ier.canvas);
+    ier.updateSize();
+
+    if (!ier.mainBuffer) {
+      ier.mainBuffer = new ImageEffectRendererBuffer(ier.glInstance);
+    }
+    ier.mainBuffer.setProgram(ier.glInstance.compileShader(shader));
+
+    ier.width = ier.canvas.width;
+    ier.height = ier.canvas.height;
+
+    if (ier.useOwnGLInstance) {
+      ImageEffectRenderer.IEROWNActive.push(ier);
+      ier.drawingLoop(0);
+    } else {
+      ImageEffectRenderer.IERActive.push(ier);
+      ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
+    }
+
+    return ier;
+  }
+
+  private static drawInstances(time: number): void {
+    window.requestAnimationFrame(time => this.drawInstances(time));
+
+    const dt = time - ImageEffectRenderer.sharedTime;
+    ImageEffectRenderer.sharedTime = time;
+
+    const canvas = ImageEffectRenderer.sharedInstance.canvas;
+    const pool = ImageEffectRenderer.IERActive;
+    let dim = { width: 0, height: 0, left: 0, top: 0 };
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        dim = pool[i].calculateSheetPosition(dim.width, dim.height, dim.left, dim.top);
+      }
+    }
+
+    if (dim.width > canvas.width || dim.height > canvas.height) {
+      canvas.width = dim.width;
+      canvas.height = dim.height;
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        pool[i].drawInstance(dt);
+      }
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      if (pool[i].animationLoop || pool[i].drawOneFrame) {
+        pool[i].copyCanvas();
+        pool[i].drawOneFrame = false;
+      }
+    }
+  }
+
+  private calculateSheetPosition(width: number, height: number, left: number, top: number) {
+    // determine if screen has been resized. If so, adjust viewport
+    if (this.canvas.width !== this.width || this.canvas.height !== this.height) {
+      this.width = this.canvas.width;
+      this.height = this.canvas.height;
+    }
+    // find position in stylesheet
+    if (left < Math.max(2048 - this.width, width - this.width)) {
+      this.left = left;
+      this.top = top;
+    } else {
+      this.left = 0;
+      this.top = height;
+    }
+
+    const newHeight = Math.max(height, this.top + this.height);
+    const newWidth = Math.max(width, this.left + this.width);
+
+    return { width: newWidth, height: newHeight, left: this.left + this.width, top: this.top };
+  }
+
+  private drawingLoop(time: number) {
+    if (this.animationRequestId) {
+      clearTimeout(this.animationRequestId);
+      this.animationRequestId = 0;
+    }
+    this.animationRequestId = window.requestAnimationFrame(time => this.drawingLoop(time));
+    const dt = time - this.time;
+
+    if (this.animationLoop || this.drawOneFrame) {
+      this.drawInstance(dt);
+    }
+
+    this.drawOneFrame = false;
+  }
+
+  // prettier-ignore
+  private drawInstance(dt: number): void {
+    const gl = this.glInstance.gl;
+    if (!this.drawOneFrame) {
+      this.time += dt / 1000;
+    }
+    if (this.tickFunc) {
+      this.tickFunc();
+    }
+
+    // update buffers
+    for (const k in this.buffers) {
+      gl.viewport(0, 0, this.width, this.height);
+      this.buffers[k].draw(this.time, this.canvas.width, this.canvas.height);
+    }
+
+    gl.viewport(this.left, this.top, this.width, this.height);
+    this.mainBuffer.draw(this.time, this.canvas.width, this.canvas.height);
+  }
 
   private copyCanvas(): void {
-    const canvas = ImageEffectRenderer.sharedCanvas;
-    this.context.drawImage(ImageEffectRenderer.sharedCanvas, this.left, canvas.height - this.height - this.top, this.width, this.height, 0, 0, this.width, this.height);
+    const canvas = this.glInstance.canvas;
+    this.context.drawImage(canvas, this.left, canvas.height - this.height - this.top, this.width, this.height, 0, 0, this.width, this.height);
   }
 
   protected order(): number {
@@ -772,8 +837,8 @@ export default class ImageEffectRenderer {
     if (this.buffers[i]) {
       this.buffers[i].destruct();
     }
-    this.buffers[i] = new ImageEffectRendererBuffer(this.gl, type);
-    this.buffers[i].setProgram(ImageEffectRenderer.compileShader(shader));
+    this.buffers[i] = new ImageEffectRendererBuffer(this.glInstance, type);
+    this.buffers[i].setProgram(this.glInstance.compileShader(shader));
     return this.buffers[i];
   }
 
@@ -796,14 +861,10 @@ export default class ImageEffectRenderer {
 
     this.canvas.style.width = `${this.container.offsetWidth}px`;
     this.canvas.style.height = `${this.container.offsetHeight}px`;
-  }
 
-  private static generateNDCQuad(): void {
-    const gl = ImageEffectRenderer.sharedGL;
-    const vertices: Float32Array = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]);
-    ImageEffectRenderer.sharedQuadVBO = <WebGLBuffer>gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, ImageEffectRenderer.sharedQuadVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    if (this.width !== this.canvas.width || this.height !== this.canvas.height) {
+      this.drawOneFrame = true;
+    }
   }
 
   /**
@@ -922,6 +983,10 @@ export default class ImageEffectRenderer {
   }
 
   public destruct() {
+    if (this.animationRequestId) {
+      clearTimeout(this.animationRequestId);
+      this.animationRequestId = 0;
+    }
     for (const k in this.buffers) {
       this.buffers[k].destruct();
     }
@@ -942,18 +1007,19 @@ export default class ImageEffectRenderer {
     // @ts-ignore
     ier.canvas.parentNode.removeChild(ier.canvas);
 
-    // remove from active IER instances
-    const index = ImageEffectRenderer.IERActive.indexOf(ier);
-    if (index > -1) {
-      ImageEffectRenderer.IERActive.splice(index, 1);
+    if (ier.useOwnGLInstance) {
+      const index = ImageEffectRenderer.IEROWNActive.indexOf(ier);
+      if (index > -1) {
+        ImageEffectRenderer.IEROWNActive.splice(index, 1);
+      }
+      ImageEffectRenderer.IEROWNPool.push(ier);
     } else {
-      throw new Error(`Can't find the EffectRenderer in the active pool`);
+      const index = ImageEffectRenderer.IERActive.indexOf(ier);
+      if (index > -1) {
+        ImageEffectRenderer.IERActive.splice(index, 1);
+      }
+      ImageEffectRenderer.IERPool.push(ier);
+      ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
     }
-
-    // add current instance to pool
-    ImageEffectRenderer.IERPool.push(ier);
-
-    // sort based on program
-    ImageEffectRenderer.IERActive.sort((a, b) => a.order() - b.order());
   }
 }
