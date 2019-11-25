@@ -438,6 +438,7 @@ export class ImageEffectRendererWebGLInstance {
     this.canvas = canvas;
     this.gl = <WebGLRenderingContext>canvas.getContext('experimental-webgl', {
       premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
     });
 
     this.gl.clearColor(0, 0, 0, 0);
@@ -620,6 +621,7 @@ export default class ImageEffectRenderer {
     } else {
       this.canvas = document.createElement('canvas');
       this.context = this.canvas.getContext('2d');
+      this.context.fillStyle = "rgba(0,0,0,0)";
       this.glInstance = ImageEffectRenderer.sharedInstance;
     }
   }
@@ -685,8 +687,9 @@ export default class ImageEffectRenderer {
     ImageEffectRenderer.sharedTime = time;
 
     const canvas = ImageEffectRenderer.sharedInstance.canvas;
+    const gl = ImageEffectRenderer.sharedInstance.gl;
     const pool = ImageEffectRenderer.IERActive;
-    let dim = { width: 0, height: 0, left: 0, top: 0 };
+    let dim = {width: 0, height: 0, left: 0, top: 0};
 
     for (let i = 0; i < pool.length; i++) {
       if (pool[i].animationLoop || pool[i].drawOneFrame) {
@@ -698,6 +701,8 @@ export default class ImageEffectRenderer {
       canvas.width = dim.width;
       canvas.height = dim.height;
     }
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     for (let i = 0; i < pool.length; i++) {
       if (pool[i].animationLoop || pool[i].drawOneFrame) {
@@ -731,7 +736,7 @@ export default class ImageEffectRenderer {
     const newHeight = Math.max(height, this.top + this.height);
     const newWidth = Math.max(width, this.left + this.width);
 
-    return { width: newWidth, height: newHeight, left: this.left + this.width, top: this.top };
+    return {width: newWidth, height: newHeight, left: this.left + this.width, top: this.top};
   }
 
   private drawingLoop(time: number) {
@@ -741,6 +746,9 @@ export default class ImageEffectRenderer {
     }
     this.animationRequestId = window.requestAnimationFrame(time => this.drawingLoop(time));
     const dt = time - this.time;
+
+    const gl = this.glInstance.gl;
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     if (this.animationLoop || this.drawOneFrame) {
       this.drawInstance(dt);
@@ -771,6 +779,7 @@ export default class ImageEffectRenderer {
 
   private copyCanvas(): void {
     const canvas = this.glInstance.canvas;
+    this.context.clearRect(0, 0, canvas.width, canvas.height);
     this.context.drawImage(canvas, this.left, canvas.height - this.height - this.top, this.width, this.height, 0, 0, this.width, this.height);
   }
 
