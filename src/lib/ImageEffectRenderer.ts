@@ -745,12 +745,11 @@ export default class ImageEffectRenderer {
       this.animationRequestId = 0;
     }
     this.animationRequestId = window.requestAnimationFrame(time => this.drawingLoop(time));
-    const dt = time - this.time;
-
-    const gl = this.glInstance.gl;
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    const dt = time - this.time * 1000;
 
     if (this.animationLoop || this.drawOneFrame) {
+      const gl = this.glInstance.gl;
+      gl.clear(gl.COLOR_BUFFER_BIT);
       this.drawInstance(dt);
     }
 
@@ -856,6 +855,8 @@ export default class ImageEffectRenderer {
     this.canvas.style.height = `${this.container.offsetHeight}px`;
 
     if (this.width !== this.canvas.width || this.height !== this.canvas.height) {
+      this.width = this.canvas.width;
+      this.height = this.canvas.height;
       this.drawOneFrame = true;
     }
   }
