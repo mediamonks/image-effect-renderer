@@ -769,7 +769,10 @@ export default class ImageEffectRenderer {
     // update buffers
     for (const k in this.buffers) {
       gl.viewport(0, 0, this.width, this.height);
-      this.buffers[k].draw(this.time, this.canvas.width, this.canvas.height);
+
+      if (this.buffers[k].draw) {
+        this.buffers[k].draw(this.time, this.canvas.width, this.canvas.height);
+      }
     }
 
     gl.viewport(this.left, this.top, this.width, this.height);
