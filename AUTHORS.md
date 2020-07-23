@@ -1,1 +1,1 @@
-* [Floris Bernard](https://github.com/flut1)
+* [Reinder Nijhoff](https://reindernijhoff.net/)
