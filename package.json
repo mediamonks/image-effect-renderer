@@ -97,7 +97,5 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.35",
-    "seng-disposable": "^1.1.3"
   }
 }
