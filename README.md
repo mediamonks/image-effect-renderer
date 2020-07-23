@@ -1,5 +1,4 @@
 [![Travis](https://img.shields.io/travis/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://travis-ci.org/mediamonks/seng-effectrenderer)
-[![Code Climate](https://img.shields.io/codeclimate/github/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://codeclimate.com/github/mediamonks/seng-effectrenderer)
 [![Coveralls](https://img.shields.io/coveralls/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://coveralls.io/github/mediamonks/seng-effectrenderer?branch=master)
 [![npm](https://img.shields.io/npm/v/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
 [![npm](https://img.shields.io/npm/dm/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
@@ -70,11 +69,6 @@ const renderer = ImageEffectRenderer.createTemporary(
 For more examples, please check the examples directory.
 
 
-## Documentation
-
-View the [generated documentation](http://mediamonks.github.io/seng-effectrenderer/).
-
-
 ## Building
 
 In order to build seng-event, ensure that you have [Git](http://git-scm.com/downloads)
@@ -111,11 +105,6 @@ before committing, so you can be sure that everything checks out.
 ## Contribute
 
 View [CONTRIBUTING.md](./CONTRIBUTING.md)
-
-
-## Changelog
-
-View [CHANGELOG.md](./CHANGELOG.md)
 
 
 ## Authors
