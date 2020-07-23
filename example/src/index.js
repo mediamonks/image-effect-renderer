@@ -3,6 +3,7 @@ import ImageTransition from './examples/ImageTransition';
 import RepeatingEffect from './examples/RepeatingEffect';
 import FlowBuffer from './examples/FlowBuffer';
 import MultipleInstances from './examples/MultipleInstances';
+import CreateDestructTest from "./examples/CreateDestructTest";
 
 const imageEffectWrapper = document.querySelector('.image-effect');
 
@@ -23,6 +24,9 @@ if (imageEffectWrapper) {
       break;
     case 'multiple':
       new MultipleInstances(imageEffectWrapper);
+      break;
+    case 'createdestruct':
+      new CreateDestructTest(imageEffectWrapper);
       break;
     default:
       throw new Error(`Can't find a class with name: ${name}`);
