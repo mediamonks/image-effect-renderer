@@ -4,7 +4,7 @@ import ImageLoader from '../utils/ImageLoader';
 const glitch = require('../shader/glitch.glsl');
 const wolfenstein = require('../shader/wolfenstein.glsl');
 
-export default class RepeatingEffect {
+export default class CreateDestructTest {
   private wrapper: HTMLElement;
   private renderer: ImageEffectRenderer;
   private image: HTMLImageElement;

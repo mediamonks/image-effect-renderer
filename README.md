@@ -68,6 +68,11 @@ const renderer = ImageEffectRenderer.createTemporary(
 
 For more examples, please check the examples directory.
 
+### Panorama Renderer
+
+If you want to render a (lightweight) panorama in WebGL, you can use the seng-panoramarenderer(https://github.com/mediamonks/seng-panoramarenderer). 
+The seng-panoramarenderer is a wrapper around seng-effectrenderer and provides basic panorama functionality.
+
 
 ## Building
 

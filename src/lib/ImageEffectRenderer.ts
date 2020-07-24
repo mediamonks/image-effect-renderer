@@ -239,6 +239,13 @@ export default class ImageEffectRenderer {
   }
 
   /**
+   * Returns the WebGL Rendering Context
+   */
+  public getContext(): WebGLRenderingContext {
+    return this.glInstance.gl;
+  }
+
+  /**
    * Returns the Canvas Element
    */
   public getCanvas(): HTMLCanvasElement {
