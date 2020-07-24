@@ -97,5 +97,6 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
+    "@babel/runtime": "^7.10.5"
   }
 }
