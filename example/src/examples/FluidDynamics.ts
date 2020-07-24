@@ -7,7 +7,6 @@ const fluid_image = require('../shader/fluid_image.glsl');
 export default class FluidDynamics {
   private wrapper: HTMLElement;
   private renderer: ImageEffectRenderer;
-  private mouseDown: boolean = false;
 
   private mouseX: number = 0;
   private mouseY: number = 0;
@@ -42,12 +41,7 @@ export default class FluidDynamics {
 
     this.renderer.addImage(this.renderer.getBuffer(3), 0);
 
-
     const canvas = this.renderer.getCanvas();
-
-    canvas.onmousedown = () => {
-      this.mouseDown = true;
-    };
 
     canvas.onmouseenter = canvas.onmousemove = (e) => {
       const bounds = canvas.getBoundingClientRect();
@@ -59,10 +53,6 @@ export default class FluidDynamics {
         this.mouseX = x;
         this.mouseY = 1 - y;
       }
-    };
-
-    canvas.onmouseleave = canvas.onmouseup = () => {
-      this.mouseDown = false;
     };
 
     this.renderer.tick(() => {
