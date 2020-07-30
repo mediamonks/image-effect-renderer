@@ -14,7 +14,11 @@ export class ImageEffectRendererWebGLInstance {
     this.canvas = canvas;
     this.gl = <WebGLRenderingContext>canvas.getContext('experimental-webgl', {
       premultipliedAlpha: true,
+      alpha: true,
       preserveDrawingBuffer: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
     });
 
     this.gl.clearColor(0, 0, 0, 0);
