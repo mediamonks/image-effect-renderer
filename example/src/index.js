@@ -5,6 +5,7 @@ import FlowBuffer from './examples/FlowBuffer';
 import MultipleInstances from './examples/MultipleInstances';
 import CreateDestructTest from "./examples/CreateDestructTest";
 import FluidDynamics from "./examples/FluidDynamics";
+import Wave from "./examples/Wave";
 
 const imageEffectWrapper = document.querySelector('.image-effect');
 
@@ -31,6 +32,9 @@ if (imageEffectWrapper) {
       break;
     case 'fluiddynamics':
       new FluidDynamics(imageEffectWrapper);
+      break;
+    case 'wave':
+      new Wave(imageEffectWrapper);
       break;
     default:
       throw new Error(`Can't find a class with name: ${name}`);

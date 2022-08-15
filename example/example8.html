@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>ImageEffectRenderer example</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      background: #111;
+    }
+
+    body {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin: 0;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .image-effect {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Wave</h2>
+<div class="image-effect" data-className="wave"></div>
+
+<script src="./bundle.js"></script>
+</body>
+</html>
