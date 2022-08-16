@@ -1,3 +1,5 @@
+uniform float uScrAspectRatio;
+
 float sineNoise1(float t) {
   const float fallOff = 0.618;
   float a= 1.;
@@ -18,12 +20,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
 	uv.y = 1.0 - uv.y;
 
   uv.y -= .5;
-  uv.y *= iResolution.y / iResolution.x / .5;
+  uv.y *= uScrAspectRatio;
+  uv.y *= iResolution.y / iResolution.x;
   uv.y += .5;
 
-  float amp = .025;
+  const float amplitude = .025;
+  const float temporalFrequency = 1.;
+  const float spatialFrequency = 5.;
 
-  uv.y += amp * sineNoise1(iTime + uv.x * 5.);
+  uv.y += amplitude * sineNoise1(iTime * temporalFrequency + uv.x * spatialFrequency);
 
 	vec4 color = texture(iChannel0, uv).rgba;
 
