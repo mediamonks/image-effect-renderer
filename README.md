@@ -68,6 +68,24 @@ const renderer = ImageEffectRenderer.createTemporary(
 
 For more examples, please check the examples directory.
 
+### Multiple buffers
+
+You can create multiple ping-pong buffers that all run using with their own shader. This is similar to adding extra buffer-tabs in Shadertoy.
+
+```
+renderer.addBuffer(0, shader);
+```
+
+You can add a buffer to an image slot:
+
+```
+renderer.getBuffer(0).addImage(this.renderer.getBuffer(0) , 0); // ping-pong
+// and
+renderer.addImage(this.renderer.getBuffer(0), 0);
+```
+
+A buffer will render in the same resolution as the output canvas.
+
 ### Panorama Renderer
 
 If you want to render a (lightweight) panorama in WebGL, you can use the seng-panoramarenderer(https://github.com/mediamonks/seng-panoramarenderer). 
