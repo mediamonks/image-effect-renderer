@@ -66,7 +66,16 @@ const renderer = ImageEffectRenderer.createTemporary(
 );
 ```
 
-For more examples, please check the examples directory.
+### Tick
+
+You can set a tick function for the renderer. This function will be called every frame just before the output is rendered.
+
+```
+renderer.tick(() => {
+  renderer.setUniformFloat('uUniformName', 1.2345); // set a custom uniform
+  renderer.updateSize();                            // resize WebGL canvas to container (if needed)
+});
+```
 
 ### Multiple buffers
 
@@ -85,6 +94,8 @@ renderer.addImage(this.renderer.getBuffer(0), 0);
 ```
 
 A buffer will render in the same resolution as the output canvas.
+
+For more examples, please check the examples directory.
 
 ### Panorama Renderer
 
