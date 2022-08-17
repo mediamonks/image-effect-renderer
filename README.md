@@ -4,10 +4,10 @@
 [![npm](https://img.shields.io/npm/dm/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
 
 # seng-effectrenderer
-Provides functionality for easily insert WebGL shaders in your application.
+A lightweight package that allows you to run WebGL shaders and effects in your application.
 
 Provides an _ImageEffectRenderer_ that can handle simple WebGL shaders.
-The _ImageEffectRenderer_ has a method to add up to 4 images on layers, which you can use to create effects with.
+The _ImageEffectRenderer_ has a method to add up to 4 images at different slots, which you can use to create effects with.
 
 _ImageEffectRenderer_ supports the most common variables used in [Shadertoy](https://www.shadertoy.com).
 This makes it easy to use base effects from that website.
