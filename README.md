@@ -37,7 +37,7 @@ const renderer = ImageEffectRenderer.createTemporary(
 );
 ```
 
-Add an image you can apply the shader to. This can have 4 layers of images to read from the shader (make sure the images are preloaded first).
+You can add images to four different slots so you can use them in the shader (as iTexture0, ...iTexture3). Make sure the images are fully loaded when added.
 ```ts
 import { ImageEffectRenderer } from 'seng-effectrenderer';
 import shader from './shader.glsl';
@@ -55,7 +55,7 @@ renderer.play();
 ### Shared WebGL Context
 
 All ImageEffectRenderers share by default one WebGLContext. If you have only one ImageEffectRenderer on a page, or if you create a large ImageEffectRenderer (i.e. fullscreen),
- the ImageEffectRenderer will probably run faster if you create it having its own WebGLContext:
+ the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
 
 ```ts
 const renderer = ImageEffectRenderer.createTemporary(
