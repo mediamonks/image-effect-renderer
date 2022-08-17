@@ -37,7 +37,7 @@ const renderer = ImageEffectRenderer.createTemporary(
 );
 ```
 
-You can add images to four different slots so you can use them in the shader (as iTexture0, ...iTexture3). Make sure the images are fully loaded when added.
+You can add images to four different slots so you can use them in the shader (as iChannel0, ...iChannel3). Make sure the images are fully loaded when added.
 ```ts
 import { ImageEffectRenderer } from 'seng-effectrenderer';
 import shader from './shader.glsl';
