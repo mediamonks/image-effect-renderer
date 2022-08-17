@@ -1,7 +1,7 @@
 {
   "name": "seng-effectrenderer",
-  "version": "v1.0.11",
-  "description": "Description",
+  "version": "v1.0.12",
+  "description": "A lightweight package that allows you to run WebGL shaders and effects in your application.",
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
