@@ -91,3 +91,8 @@ Install dev dependencies:
 ```sh
 npm i
 ```
+
+Build package:
+```sh
+npm run build
+```

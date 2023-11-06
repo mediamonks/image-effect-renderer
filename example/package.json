@@ -1,8 +1,8 @@
 {
-  "name": "minimal-webpack-setup",
+  "name": "image-effect-renderer examples",
   "version": "1.0.0",
   "description": "",
-  "author": "Reinder Nijhoff reinder@mediamonks.com>",
+  "author": "Reinder Nijhoff <reinder@mediamonks.com>",
   "main": "index.js",
   "scripts": {
     "dev": "webpack serve --config ./webpack.config.js --mode development"

@@ -6,7 +6,7 @@
     "fragment shader", "webgl", "image", "video", "effect", "shadertoy", "glsl", "shader", "oneshader"
   ],
   "repository": "git@github.com:mediamonks/image-effect-renderer.git",
-  "author": "Reinder Nijhoff reinder@mediamonks.com>",
+  "author": "Reinder Nijhoff <reinder@mediamonks.com>",
   "license": "MIT",
   "exports": {
     "import": "./dist/index.js"
