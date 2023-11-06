@@ -5,7 +5,7 @@
   "keywords": [
     "fragment shader", "webgl", "image", "video", "effect", "shadertoy", "glsl", "shader", "oneshader"
   ],
-  "repository": "git@github.com:image-effect-renderer.git",
+  "repository": "git@github.com:mediamonks/image-effect-renderer.git",
   "author": "Reinder Nijhoff reinder@mediamonks.com>",
   "license": "MIT",
   "exports": {
