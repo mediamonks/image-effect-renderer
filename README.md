@@ -11,7 +11,7 @@ The ImageEffectRenderer supports the most common variables used in [Shadertoy](h
 Add `@mediamonks/image-effect-renderer` to your project:
 
 ```sh
-npm i image-effect-renderer
+npm i @mediamonks/image-effect-renderer
 ```
 ## Basic usage
 
