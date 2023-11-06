@@ -29,6 +29,3 @@ yarn-debug.log*
 yarn-error.log*
 
 .eslintcache
-
-# npm publish artifects
-/dist

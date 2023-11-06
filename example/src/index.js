@@ -1,43 +1,19 @@
-import Wolfenstein from './examples/Wolfenstein';
-import ImageTransition from './examples/ImageTransition';
-import RepeatingEffect from './examples/RepeatingEffect';
-import FlowBuffer from './examples/FlowBuffer';
-import MultipleInstances from './examples/MultipleInstances';
-import CreateDestructTest from "./examples/CreateDestructTest";
+import Stargate from "./examples/Stargate";
+import Glitch from "./examples/Glitch";
 import FluidDynamics from "./examples/FluidDynamics";
-import Wave from "./examples/Wave";
+import FluidLike from "./examples/FluidLike";
+import Mask1 from "./examples/Mask1";
+import Mask2 from "./examples/Mask2";
+import Flow from "./examples/Flow";
+import CreateDestructTest from "./examples/CreateDestructTest";
 
-const imageEffectWrapper = document.querySelector('.image-effect');
+new Mask1(document.getElementsByClassName('grid-item')[0]);
+new Stargate(document.getElementsByClassName('grid-item')[1]);
+new Glitch(document.getElementsByClassName('grid-item')[2]);
+new FluidLike(document.getElementsByClassName('grid-item')[3]);
+new FluidDynamics(document.getElementsByClassName('grid-item')[4]);
+new Mask2(document.getElementsByClassName('grid-item')[5]);
+new Flow(document.getElementsByClassName('grid-item')[6]);
+new CreateDestructTest(document.getElementsByClassName('grid-item')[7], {useSharedContext: false});
+new Mask1(document.getElementsByClassName('grid-item')[8], {useSharedContext: false});
 
-if (imageEffectWrapper) {
-  const name = imageEffectWrapper.getAttribute('data-className');
-  switch (name) {
-    case 'wolfenstein':
-      new Wolfenstein(imageEffectWrapper);
-      break;
-    case 'transition':
-      new ImageTransition(imageEffectWrapper);
-      break;
-    case 'glitch':
-      new RepeatingEffect(imageEffectWrapper);
-      break;
-    case 'flow':
-      new FlowBuffer(imageEffectWrapper);
-      break;
-    case 'multiple':
-      new MultipleInstances(imageEffectWrapper);
-      break;
-    case 'createdestruct':
-      new CreateDestructTest(imageEffectWrapper);
-      break;
-    case 'fluiddynamics':
-      new FluidDynamics(imageEffectWrapper);
-      break;
-    case 'wave':
-      new Wave(imageEffectWrapper);
-      break;
-    default:
-      throw new Error(`Can't find a class with name: ${name}`);
-      break;
-  }
-}

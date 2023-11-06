@@ -1,31 +1,24 @@
 {
   "compilerOptions": {
-    "allowJs": false,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "./src/",
-    "rootDir": "./src/",
-    "forceConsistentCasingInFileNames": true,
-    "module": "es2015",
-    "target": "es5",
-    "moduleResolution": "node",
-    "noEmit": false,
-    "noImplicitAny": false,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "pretty": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "sourceMap": true,
+    "target": "ES2020",
+    "module": "NodeNext",
     "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2017"
-    ]
+      "ESNext",
+      "DOM"
+    ],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitOverride": true,
+    "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "incremental": false,
+    "outDir": "./dist"
   },
   "include": [
-    "./src/**/*",
-    "./types/**/*.d.ts"
+    "./**/*.ts"
   ]
 }

@@ -1,1 +1,1 @@
-export { default as ImageEffectRenderer } from './lib/ImageEffectRenderer';
+export { default as ImageEffectRenderer } from './lib/ImageEffectRenderer.js';

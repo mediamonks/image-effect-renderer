@@ -1,106 +1,75 @@
-[![Travis](https://img.shields.io/travis/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://travis-ci.org/mediamonks/seng-effectrenderer)
-[![Coveralls](https://img.shields.io/coveralls/mediamonks/seng-effectrenderer.svg?maxAge=2592000)](https://coveralls.io/github/mediamonks/seng-effectrenderer?branch=master)
-[![npm](https://img.shields.io/npm/v/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
-[![npm](https://img.shields.io/npm/dm/seng-effectrenderer.svg?maxAge=2592000)](https://www.npmjs.com/package/seng-effectrenderer)
+# Image Effect Renderer
 
-# seng-effectrenderer
-A lightweight package that allows you to run WebGL shaders and effects in your application.
+The image-effect-renderer is lightweight package that allows you to run WebGL fragment shaders in your website using WebGL. It can be used to apply effects to HTML image or video sources.
 
-Provides an _ImageEffectRenderer_ that can handle simple WebGL shaders.
-The _ImageEffectRenderer_ has a method to add up to 4 images at different slots, which you can use to create effects with.
+The ImageEffectRenderer supports the most common variables used in [Shadertoy](https://www.shadertoy.com/) and the syntax of fragments shaders from Shadertoy and [OneShader](https://www.oneshader.net/). This makes it easy to prototype different effects using Shadertoy or OneShader.
 
-_ImageEffectRenderer_ supports the most common variables used in [Shadertoy](https://www.shadertoy.com).
-This makes it easy to use base effects from that website.
+## Getting started
 
+### Installing
 
-## Installation
+Add `image-effect-renderer` to your project:
 
 ```sh
-yarn add seng-effectrenderer
+npm i image-effect-renderer
 ```
-
-```sh
-npm i -S seng-effectrenderer
-```
-
 ## Basic usage
 
 Simple shader rendering on canvas.
 ```ts
-import { ImageEffectRenderer } from 'seng-effectrenderer';
+import { ImageEffectRenderer } from 'image-effect-renderer';
 import shader from './shader.glsl';
 
-const renderer = ImageEffectRenderer.createTemporary(
-  wrapperElement,
-  shader,
-  true,
-);
+const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { loop: true });
 ```
 
-You can add images to four different slots so you can use them in the shader (as iChannel0, ...iChannel3). Make sure the images are fully loaded when added.
+This library allows adding images into up to eight different slots, which can be utilized in the shader (as iChannel0 to iChannel7). Ensure images are fully loaded prior to adding them.
 ```ts
 import { ImageEffectRenderer } from 'seng-effectrenderer';
 import shader from './shader.glsl';
 
-const renderer = ImageEffectRenderer.createTemporary(
-  wrapperElement,
-  shader,
-  false,
-);
+const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { loop: false });
 
-renderer.addImage(image, 0);
+renderer.setImage(0, image);
 renderer.play();
 ```
 
 ### Shared WebGL Context
 
 All ImageEffectRenderers share by default one WebGLContext. If you have only one ImageEffectRenderer on a page, or if you create a large ImageEffectRenderer (i.e. fullscreen),
- the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
+the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
 
 ```ts
-const renderer = ImageEffectRenderer.createTemporary(
-  wrapperElement,
-  shader,
-  true,
-  true, // Create a separate WebGLContext for this specific ImageEffectRenderer
-);
+const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { useSharedContext: false });
 ```
 
 ### Tick
 
-You can set a tick function for the renderer. This function will be called every frame just before the output is rendered.
+You can assign a tick function for the renderer. This function will be invoked each frame just prior to output rendering.
 
 ```
 renderer.tick(() => {
-  renderer.setUniformFloat('uUniformName', 1.2345); // set a custom uniform
-  renderer.updateSize();                            // resize WebGL canvas to container (if needed)
+  renderer.setUniformFloat('uUniformName', 1.2345);
 });
 ```
 
 ### Multiple buffers
 
-You can create multiple ping-pong buffers that all run using with their own shader. This is similar to adding extra buffer-tabs in Shadertoy.
+Creation of multiple ping-pong buffers, each functioning with its own shader, is possible and functions analogously to adding extra buffer-tabs in Shadertoy.
 
 ```
-renderer.addBuffer(0, shader);
+renderer.createBuffer(0, shader);
 ```
 
-You can add a buffer to an image slot:
+You can assign a buffer to an image slot:
 
 ```
-renderer.getBuffer(0).addImage(this.renderer.getBuffer(0) , 0); // ping-pong
+renderer.buffers[0].setImage(0, this.renderer.buffers[0]); // ping-pong
 // and
-renderer.addImage(this.renderer.getBuffer(0), 0);
+renderer.setImage(0, renderer.buffers[0]);
 ```
 
-A buffer will render in the same resolution as the output canvas.
-
-For more examples, please check the examples directory.
-
-### Panorama Renderer
-
-If you want to render a (lightweight) panorama in WebGL, you can use the seng-panoramarenderer(https://github.com/mediamonks/seng-panoramarenderer). 
-The seng-panoramarenderer is a wrapper around seng-effectrenderer and provides basic panorama functionality.
+A buffer will render in the same resolution as the output canvas. To see more examples, please refer to the examples directory.
 
 
 ## Building
@@ -110,42 +79,15 @@ and [Node.js](http://nodejs.org/) installed.
 
 Clone a copy of the repo:
 ```sh
-git clone https://github.com/mediamonks/seng-effectrenderer.git
+git clone https://github.com/mediamonks/image-effect-renderer.git
 ```
 
-Change to the seng-effectrenderer directory:
+Change to the image-effect-renderer directory:
 ```sh
-cd seng-effectrenderer
+cd image-effect-renderer
 ```
 
 Install dev dependencies:
 ```sh
-yarn
+npm i
 ```
-
-Use one of the following main scripts:
-```sh
-yarn build            # build this project
-yarn dev              # run compilers in watch mode, both for babel and typescript
-yarn test             # run the unit tests incl coverage
-yarn test:dev         # run the unit tests in watch mode
-yarn lint             # run eslint and tslint on this project
-yarn doc              # generate typedoc documentation
-```
-
-When installing this module, it adds a pre-commit hook, that runs lint and prettier commands
-before committing, so you can be sure that everything checks out.
-
-## Contribute
-
-View [CONTRIBUTING.md](./CONTRIBUTING.md)
-
-
-## Authors
-
-View [AUTHORS.md](./AUTHORS.md)
-
-
-## LICENSE
-
-[MIT](./LICENSE) © MediaMonks

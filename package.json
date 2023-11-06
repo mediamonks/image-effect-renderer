@@ -1,102 +1,40 @@
 {
-  "name": "seng-effectrenderer",
-  "version": "v1.0.12",
-  "description": "A lightweight package that allows you to run WebGL shaders and effects in your application.",
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "scripts": {
-    "prepublishOnly": "npm-run-all -s validate build",
-    "validate": "npm-run-all -p lint test",
-    "dev": "npm-run-all -p dev:*",
-    "dev:babel": "babel ./src -x \".ts\" --out-dir ./ --watch",
-    "dev:ts": "tsc --noEmit --allowJs --watch",
-    "build": "npm-run-all -s clean build:*",
-    "build:babel": "babel ./src -x \".ts\" -x \".js\" --out-dir ./",
-    "build:ts": "tsc --declaration --outDir tmp --declarationDir ./",
-    "test": "cross-env NODE_ENV=test nyc mocha \"./test/**/*.spec.{ts,js}\"",
-    "test:dev": "mocha -w --watch-extensions ts,js \"./test/**/*.spec.{ts,js}\"",
-    "clean": "npm-run-all clean:*",
-    "clean:test": "shx rm -rf coverage .nyc_output",
-    "clean:npm": "shx rm -rf lib tmp index.js",
-    "doc": "npm-run-all -p doc:*",
-    "doc:typedoc": "typedoc --out docs/ src/ --mode file",
-    "lint": "npm-run-all lint:*",
-    "lint:js": "eslint src --ext .js --cache",
-    "lint:ts": "tslint src/**/*.ts -c tslint.json -p tsconfig.json -t verbose",
-    "prettify": "prettier --write \"src/**/*.{js,ts,json}\"",
-    "precommit": "lint-staged"
-  },
-  "lint-staged": {
-    "gitDir": "./",
-    "linters": {
-      "src/**/*.{js,ts,json}": [
-        "prettier --write",
-        "git add"
-      ],
-      "src/**/*.js": [
-        "npm run lint:js"
-      ],
-      "src/**/*.ts": [
-        "npm run lint:ts"
-      ]
-    }
-  },
-  "pre-push": [
-    "validate"
-  ],
-  "author": "René Drieënhuizen <rene@mediamonks.com> (ReneDrie)",
-  "homepage": "https://www.mediamonks.com/",
-  "license": "MIT",
+  "name": "@mediamonks/image-effect-renderer",
+  "version": "1.0.0",
+  "description": "The image-effect-renderer is lightweight package that allows you to run WebGL fragment shaders in your website using WebGL. It can be used to apply effects to HTML image or video sources.",
   "keywords": [
-    "seng",
-    "mediamonks"
+    "fragment shader", "webgl", "image", "video", "effect", "shadertoy", "glsl", "shader", "oneshader"
   ],
-  "bugs": {
-    "url": "https://github.com/mediamonks/seng-effectrenderer/issues"
+  "repository": "git@github.com:image-effect-renderer.git",
+  "author": "Reinder Nijhoff reinder@mediamonks.com>",
+  "license": "MIT",
+  "exports": {
+    "import": "./dist/index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mediamonks/seng-effectrenderer.git"
+  "type": "module",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "npm run build:ts -- --watch",
+    "build": "npm run clean && npm run build:ts",
+    "build:ts": "tsc -p ./tsconfig.build.json",
+    "clean": "shx rm -rf dist",
+    "typecheck": "tsc --project tsconfig.json --noEmit --noUnusedLocals",
+    "prepare-publish": "ts-node-esm ./scripts/preparePublish.ts"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.35",
-    "@babel/core": "^7.0.0-beta.35",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.35",
-    "@babel/preset-env": "^7.0.0-beta.35",
-    "@babel/preset-stage-3": "^7.0.0-beta.35",
-    "@babel/preset-typescript": "^7.0.0-beta.35",
-    "@babel/register": "^7.0.0-beta.35",
-    "@types/chai": "^4.0.10",
-    "@types/mocha": "^2.2.44",
-    "@types/sinon": "^4.1.2",
-    "@types/sinon-chai": "^2.7.29",
-    "babel-eslint": "^8.0.3",
-    "babel-plugin-istanbul": "^4.1.5",
-    "chai": "^4.1.2",
-    "coveralls": "^2.11.6",
-    "cross-env": "^5.1.1",
-    "eslint": "^4.13.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-config-prettier": "^2.9.0",
-    "eslint-friendly-formatter": "^3.0.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-prettier": "^2.4.0",
-    "husky": "^0.14.3",
-    "jsdom": "^11.5.1",
-    "jsdom-global": "^3.0.2",
-    "lint-staged": "^6.0.0",
-    "mocha": "^4.0.1",
-    "npm-run-all": "^4.1.2",
-    "nyc": "^11.3.0",
-    "prettier": "^1.9.2",
-    "shx": "^0.2.2",
-    "tslint": "^5.8.0",
-    "tslint-config-airbnb": "^5.4.2",
-    "tslint-config-prettier": "^1.6.0",
-    "typedoc": "^0.9.0",
-    "typescript": "^2.6.2"
+    "@types/shelljs": "^0.8.14",
+    "shelljs": "^0.8.5",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
   },
-  "dependencies": {
-    "@babel/runtime": "^7.10.5"
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
