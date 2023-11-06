@@ -8,7 +8,7 @@ The ImageEffectRenderer supports the most common variables used in [Shadertoy](h
 
 ### Installing
 
-Add `image-effect-renderer` to your project:
+Add `@mediamonks/image-effect-renderer` to your project:
 
 ```sh
 npm i image-effect-renderer
@@ -17,7 +17,7 @@ npm i image-effect-renderer
 
 Simple shader rendering on canvas.
 ```ts
-import { ImageEffectRenderer } from 'image-effect-renderer';
+import { ImageEffectRenderer } from '@mediamonks/image-effect-renderer';
 import shader from './shader.glsl';
 
 const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { loop: true });
@@ -25,7 +25,7 @@ const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { l
 
 This library allows adding images into up to eight different slots, which can be utilized in the shader (as iChannel0 to iChannel7). Ensure images are fully loaded prior to adding them.
 ```ts
-import { ImageEffectRenderer } from 'seng-effectrenderer';
+import { ImageEffectRenderer } from '@mediamonks/image-effect-renderer';
 import shader from './shader.glsl';
 
 const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { loop: false });
