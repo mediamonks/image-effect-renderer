@@ -1,6 +1,14 @@
 import {WebGLInstance} from './WebGLInstance.js';
 import RendererInstance from "./RendererInstance.js";
 
+/**
+ * @typedef {Object} ImageEffectRendererOptions
+ * @property {boolean} loop - Determines if the renderer should loop. Defaults to false.
+ * @property {boolean} autoResize - Determines if the renderer should automatically resize. Defaults to true.
+ * @property {number} pixelRatio - The pixel ratio of the renderer. Defaults to window.devicePixelRatio.
+ * @property {boolean} useSharedContext - Determines if the renderer should use a shared WebGL context. Defaults to true.
+ * @property {boolean} asyncCompile - Determines if the renderer should compile shaders asynchronously. Defaults to true.
+ */
 export type ImageEffectRendererOptions = {
     loop: boolean;
     autoResize: boolean;

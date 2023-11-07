@@ -5,6 +5,14 @@ import type Program from "./Program.js";
 import type {RendererBuffer} from "./RendererBuffer.js";
 import type {Texture} from "./Texture.js.js";
 
+/**
+ * @typedef {Object} ImageOptions
+ * @property {boolean} clampX - Determines if the texture's horizontal dimension will be clamped. Defaults to true.
+ * @property {boolean} clampY - Determines if the texture's vertical dimension will be clamped. Defaults to true.
+ * @property {boolean} flipY - Inverts the image texture in the y-axis. Defaults to false.
+ * @property {boolean} useMipmap - Specifies whether to use mipmaps for texture sampling. Defaults to true.
+ * @property {boolean} useCache - Indicates if the texture should be cached. Defaults to true.
+ */
 export type ImageOptions = {
     clampX: boolean,
     clampY: boolean,
