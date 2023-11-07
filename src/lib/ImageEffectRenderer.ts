@@ -1,5 +1,5 @@
 import {WebGLInstance} from './WebGLInstance.js';
-import RendererInstance from "./RendererInstance.js";
+import {RendererInstance} from "./RendererInstance.js";
 
 /**
  * @typedef {Object} ImageEffectRendererOptions

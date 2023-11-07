@@ -5,7 +5,7 @@ import {ImageEffectRenderer} from "../index.js";
 import {type BufferOptions, RendererBuffer} from "./RendererBuffer.js";
 import Program from "./Program.js";
 
-export default class RendererInstance extends Renderer {
+export class RendererInstance extends Renderer {
     private static index: number = 0;
 
     public canvas: HTMLCanvasElement;
