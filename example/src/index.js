@@ -14,6 +14,6 @@ new FluidLike(document.getElementsByClassName('grid-item')[3]);
 new FluidDynamics(document.getElementsByClassName('grid-item')[4]);
 new Mask2(document.getElementsByClassName('grid-item')[5]);
 new Flow(document.getElementsByClassName('grid-item')[6]);
-new CreateDestructTest(document.getElementsByClassName('grid-item')[7], {useSharedContext: false});
+new CreateDestructTest(document.getElementsByClassName('grid-item')[7], {useSharedContext: true});
 new Mask1(document.getElementsByClassName('grid-item')[8], {useSharedContext: false});
 

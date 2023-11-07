@@ -52,8 +52,6 @@ export default class FluidDynamics {
       const bounds = canvas.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (e.clientX - bounds.left) / bounds.width));
       const y = Math.max(0, Math.min(1, (e.clientY - bounds.top) / bounds.height));
-      this.prevMouseX = this.mouseX;
-      this.prevMouseY = this.mouseY;
       this.mouseX = x;
       this.mouseY = 1 - y;
     };
@@ -63,6 +61,8 @@ export default class FluidDynamics {
       this.renderer.buffers[1].setUniformVec4('uMouse', this.mouseX, this.mouseY, this.prevMouseX, this.prevMouseY);
       this.renderer.buffers[2].setUniformVec4('uMouse', this.mouseX, this.mouseY, this.prevMouseX, this.prevMouseY);
       this.renderer.buffers[3].setUniformVec4('uMouse', this.mouseX, this.mouseY, this.prevMouseX, this.prevMouseY);
+      this.prevMouseX = this.mouseX;
+      this.prevMouseY = this.mouseY;
     });
   }
 }

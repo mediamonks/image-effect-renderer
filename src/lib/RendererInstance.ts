@@ -207,6 +207,6 @@ export default class RendererInstance extends Renderer {
         const dstCanvas = this.canvas;
         const context = <CanvasRenderingContext2D>dstCanvas.getContext('2d');
         context.clearRect(0, 0, this.width, this.height);
-        context.drawImage(srcCanvas, 0, 0, this.width, this.height, 0, 0, this.width, this.height);
+        context.drawImage(srcCanvas, 0, srcCanvas.height-this.height, this.width, this.height, 0, 0, this.width, this.height);
     }
 }

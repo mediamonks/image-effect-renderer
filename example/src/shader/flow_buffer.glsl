@@ -1,14 +1,9 @@
 uniform vec4 uMouse;
-uniform float uMouseDown;
 
 vec3 mouseInput(vec2 uv) {
-  if (uMouseDown > .5) {
-    vec2 d = uv - uMouse.xy;
-    d.x *= iResolution.x / iResolution.y;
-    return vec3((uMouse.zw-uMouse.xy) * 20. * smoothstep(.2, 0., length(d)), 0);
-  } else {
-    return vec3(0);
-  }
+  vec2 d = uv - uMouse.xy;
+  d.x *= iResolution.x / iResolution.y;
+  return vec3((uMouse.zw-uMouse.xy) * 20. * smoothstep(.2, 0., length(d)), 0);
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
