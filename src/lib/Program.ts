@@ -231,6 +231,7 @@ export default class Program {
             uniform vec2 iResolution;
             uniform float iTime;
             uniform float iGlobalTime;
+            uniform float iAspect;
             uniform int iFrame;
             uniform vec4 iMouse;
 
