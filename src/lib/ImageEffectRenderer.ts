@@ -82,6 +82,8 @@ export default class ImageEffectRenderer {
     private static drawInstances(time: number): void {
         window.requestAnimationFrame(time => this.drawInstances(time));
 
+        time /= 1000;
+
         const dt = ImageEffectRenderer.sharedTime < 0 ? 1 / 60 : time - ImageEffectRenderer.sharedTime;
         ImageEffectRenderer.sharedTime = time;
 
@@ -90,7 +92,6 @@ export default class ImageEffectRenderer {
         const pool = ImageEffectRenderer.poolInUse;
 
         let maxWidth = 0, maxHeight = 0;
-
 
         pool.forEach(ier => {
             ier.update(time);

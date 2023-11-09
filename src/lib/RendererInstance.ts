@@ -14,7 +14,7 @@ export class RendererInstance extends Renderer {
 
     private index: number;
 
-    private tickFuncs: (() => void) [] = [];
+    private tickFuncs: ((dt:number) => void) [] = [];
     private readyFuncs: (() => void) [] = [];
 
     private startTime: number = -1;
@@ -97,7 +97,7 @@ export class RendererInstance extends Renderer {
      *
      * @param tick - The function to be called.
      */
-    public tick(tick: () => void) {
+    public tick(tick: (dt:number) => void) {
         this.tickFuncs.push(tick);
     }
 
@@ -128,10 +128,10 @@ export class RendererInstance extends Renderer {
         const context = this.gl.context;
 
         if (!this.drawOneFrame) {
-            this.time += dt / 1000;
+            this.time += dt;
         }
 
-        this.tickFuncs.forEach(func => func());
+        this.tickFuncs.forEach(func => func(dt));
 
         // update buffers
         this.buffers.forEach(buffer => {
@@ -175,6 +175,8 @@ export class RendererInstance extends Renderer {
 
     private drawingLoop(time: number) {
         this.animationRequestId = window.requestAnimationFrame(time => this.drawingLoop(time));
+
+        time /= 1000;
 
         const dt = this.startTime < 0 ? 1 / 60 : time - this.startTime;
         this.startTime = time > 0 ? time : -1;
