@@ -32,6 +32,7 @@ export class RendererInstance extends Renderer {
         this.options = {...ImageEffectRenderer.defaultOptions, ...options};
         this.index = RendererInstance.index++;
         this.container = container;
+        this.main = this;
 
         if (this.options.useSharedContext) {
             this.canvas = document.createElement('canvas');
@@ -89,6 +90,7 @@ export class RendererInstance extends Renderer {
         }
         const newBuffer = new RendererBuffer(this.gl, options);
         newBuffer.program = this.gl.compileShader(shader);
+        newBuffer.main = this;
         return this.buffers[i] = newBuffer;
     }
 

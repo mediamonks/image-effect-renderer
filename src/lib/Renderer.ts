@@ -4,6 +4,7 @@ import {UniformType} from "./Uniform.js";
 import type Program from "./Program.js";
 import type {RendererBuffer} from "./RendererBuffer.js";
 import type {Texture} from "./Texture.js.js";
+import type {RendererInstance} from "./RendererInstance.js";
 
 /**
  * @typedef {Object} ImageOptions
@@ -25,6 +26,7 @@ export class Renderer {
     public width: number = 0;
     public height: number = 0;
     public program!: Program;
+    public main!: RendererInstance;
 
     gl: WebGLInstance;
     protected frame: number = 0;
