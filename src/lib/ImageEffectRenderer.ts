@@ -79,7 +79,7 @@ export default class ImageEffectRenderer {
         }
     }
 
-    private static drawInstances(time: number): void {
+    private static drawInstances(time: number = 0): void {
         window.requestAnimationFrame(time => this.drawInstances(time));
 
         time /= 1000;
@@ -94,7 +94,7 @@ export default class ImageEffectRenderer {
         let maxWidth = 0, maxHeight = 0;
 
         pool.forEach(ier => {
-            ier.update(time);
+            ier.update(dt);
         });
 
         pool.forEach(ier => {

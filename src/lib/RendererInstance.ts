@@ -11,6 +11,7 @@ export class RendererInstance extends Renderer {
     public canvas: HTMLCanvasElement;
     public buffers: RendererBuffer[] = [];
     public options: ImageEffectRendererOptions;
+    public time: number = 0;
 
     private index: number;
 
@@ -18,7 +19,6 @@ export class RendererInstance extends Renderer {
     private readyFuncs: (() => void) [] = [];
 
     private startTime: number = -1;
-    private time: number = 0;
     private drawOneFrame: boolean = false;
     private container: HTMLElement;
 
@@ -154,7 +154,7 @@ export class RendererInstance extends Renderer {
         return this.shaderCompiled && this.buffers.every(buffer => buffer && buffer.shaderCompiled);
     }
 
-    public update(time: number) {
+    public update(dt: number) {
         if (this.allShadersCompiled) {
             if (!this._ready) {
                 this._ready = true;
@@ -175,7 +175,7 @@ export class RendererInstance extends Renderer {
         }
     }
 
-    private drawingLoop(time: number) {
+    private drawingLoop(time: number = 0) {
         this.animationRequestId = window.requestAnimationFrame(time => this.drawingLoop(time));
 
         time /= 1000;
@@ -183,7 +183,7 @@ export class RendererInstance extends Renderer {
         const dt = this.startTime < 0 ? 1 / 60 : time - this.startTime;
         this.startTime = time > 0 ? time : -1;
 
-        this.update(time);
+        this.update(dt);
 
         if (this.drawThisFrame) {
             this.drawInstance(dt);
