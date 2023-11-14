@@ -13,6 +13,8 @@ import type {RendererInstance} from "./RendererInstance.js";
  * @property {boolean} flipY - Inverts the image texture in the y-axis. Defaults to false.
  * @property {boolean} useMipmap - Specifies whether to use mipmaps for texture sampling. Defaults to true.
  * @property {boolean} useCache - Indicates if the texture should be cached. Defaults to true.
+ * @property {boolean} minFilterLinear - Determines if the texture's min filter will be linear. Defaults to true.
+ * @property {boolean} magFilterLinear - Determines if the texture's mag filter will be linear. Defaults to true.
  */
 export type ImageOptions = {
     clampX: boolean,
@@ -20,6 +22,8 @@ export type ImageOptions = {
     flipY: boolean,
     useMipmap: boolean,
     useCache: boolean,
+    minFilterLinear: boolean,
+    magFilterLinear: boolean,
 }
 
 export class Renderer {
@@ -37,6 +41,8 @@ export class Renderer {
         flipY: false,
         useMipmap: true,
         useCache: true,
+        minFilterLinear: true,
+        magFilterLinear: true,
     };
 
     private uniforms: { [k: string]: Uniform } = {};
