@@ -1,6 +1,6 @@
 # Image Effect Renderer
 
-The image-effect-renderer is lightweight package that allows you to run fragment shaders in your website using WebGL. It can be used to apply effects to HTML image or video sources.
+The image-effect-renderer is a lightweight package that allows you to run fragment shaders in your website using WebGL. It can be used to apply effects to HTML images or video sources.
 
 The ImageEffectRenderer supports the most common variables used in [Shadertoy](https://www.shadertoy.com/) and the syntax of fragments shaders from Shadertoy and [OneShader](https://www.oneshader.net/). This makes it easy to prototype different effects using Shadertoy or OneShader.
 
@@ -55,7 +55,7 @@ renderer.tick(() => {
 
 ### Multiple buffers
 
-Creation of multiple ping-pong buffers, each functioning with its own shader, is possible and functions analogously to adding extra buffer-tabs in Shadertoy.
+The creation of multiple ping-pong buffers, each functioning with its own shader, is possible and functions analogously to adding extra buffer tabs in Shadertoy.
 
 ```
 renderer.createBuffer(0, shader);
