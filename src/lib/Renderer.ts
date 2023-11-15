@@ -215,13 +215,7 @@ export class Renderer {
     }
 
     public destruct() {
-        const gl = this.gl.context;
-
-        Object.values(this.textures).forEach((t) => {
-            if (t.texture && !t.cached) {
-                gl.deleteTexture(<WebGLTexture>t.texture);
-            }
-        });
+        this.textures.forEach(t => t.texture && !t.cached && this.gl.context.deleteTexture(<WebGLTexture>t.texture));
         this.textures = [];
         this.uniforms = {};
     }
