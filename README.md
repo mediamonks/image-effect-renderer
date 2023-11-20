@@ -23,7 +23,7 @@ import shader from './shader.glsl';
 const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { loop: true });
 ```
 
-This library allows adding images into up to eight different slots, which can be utilized in the shader (as iChannel0 to iChannel7). Ensure images are fully loaded prior to adding them.
+This library allows adding images into up to eight slots, which can be utilized in the shader (as iChannel0 to iChannel7). Ensure images are fully loaded before adding them.
 ```ts
 import { ImageEffectRenderer } from '@mediamonks/image-effect-renderer';
 import shader from './shader.glsl';
@@ -36,7 +36,7 @@ renderer.play();
 
 ### Shared WebGL Context
 
-All ImageEffectRenderers share by default one WebGLContext. If you have only one ImageEffectRenderer on a page, or if you create a large ImageEffectRenderer (i.e. fullscreen),
+All ImageEffectRenderers share by default one WebGLContext. If you have only one ImageEffectRenderer on a page or if you create a large ImageEffectRenderer (i.e. fullscreen),
 the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
 
 ```ts
@@ -45,7 +45,7 @@ const renderer = ImageEffectRenderer.createTemporary(wrapperElement, shader, { u
 
 ### Tick
 
-You can assign a tick function for the renderer. This function will be invoked each frame just prior to output rendering.
+You can assign a tick function for the renderer. This function will be invoked in each frame just before output rendering.
 
 ```
 renderer.tick(() => {
@@ -55,7 +55,7 @@ renderer.tick(() => {
 
 ### Multiple buffers
 
-The creation of multiple ping-pong buffers, each functioning with its own shader, is possible and functions analogously to adding extra buffer tabs in Shadertoy.
+Creating multiple ping-pong buffers, each functioning with its shader is possible and functions analogously to adding extra buffer tabs in Shadertoy.
 
 ```
 renderer.createBuffer(0, shader);
@@ -69,12 +69,12 @@ renderer.buffers[0].setImage(0, this.renderer.buffers[0]); // ping-pong
 renderer.setImage(0, renderer.buffers[0]);
 ```
 
-A buffer will render in the same resolution as the output canvas. To see more examples, please refer to the examples directory.
+A buffer will render in the exact resolution as the output canvas. To see more examples, please take a look at the examples directory.
 
 
 ## Building
 
-In order to build seng-event, ensure that you have [Git](http://git-scm.com/downloads)
+To build image-effect-renderer, ensure that you have [Git](http://git-scm.com/downloads)
 and [Node.js](http://nodejs.org/) installed.
 
 Clone a copy of the repo:
