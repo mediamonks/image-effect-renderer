@@ -1,7 +1,6 @@
 import {WebGLInstance} from "./WebGLInstance.js";
 import type {ImageEffectRendererOptions} from "./ImageEffectRenderer.js";
 import {Renderer} from "./Renderer.js";
-import {ImageEffectRenderer} from "../index.js";
 import {type BufferOptions, RendererBuffer} from "./RendererBuffer.js";
 import Program from "./Program.js";
 
@@ -26,10 +25,10 @@ export class RendererInstance extends Renderer {
     private resizeObserver: ResizeObserver;
     private _ready: boolean = false;
 
-    constructor(glInstance: WebGLInstance, container: HTMLElement, shader: string, options: Partial<ImageEffectRendererOptions> = {}) {
+    constructor(glInstance: WebGLInstance, container: HTMLElement, shader: string, options: ImageEffectRendererOptions) {
         super(glInstance);
 
-        this.options = {...ImageEffectRenderer.defaultOptions, ...options};
+        this.options = {...options};
         this.index = RendererInstance.index++;
         this.container = container;
         this.main = this;

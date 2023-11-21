@@ -1,4 +1,4 @@
-import {WebGLInstance} from "./WebGLInstance.js";
+import type {WebGLInstance} from "./WebGLInstance.js";
 
 export enum ProgramType {
     SHADERTOY_WEBGL,
