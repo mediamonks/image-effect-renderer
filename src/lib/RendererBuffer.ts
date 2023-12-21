@@ -11,7 +11,7 @@ export class RendererBuffer extends Renderer {
         ...Renderer.defaultImageOptions,
         useMipmap: false,
         useCache: false,
-        type: WebGLRenderingContext.UNSIGNED_BYTE,
+        type: 5121, // WebGLRenderingContext.UNSIGNED_BYTE,
     };
 
     public options: BufferOptions;

@@ -21,7 +21,7 @@ export default class ImageEffectRenderer {
     public static defaultOptions: ImageEffectRendererOptions = {
         loop: false,
         autoResize: true,
-        pixelRatio: window.devicePixelRatio,
+        pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 1,
         useSharedContext: true,
         asyncCompile: true,
     };
