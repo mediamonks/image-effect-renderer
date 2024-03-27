@@ -16,7 +16,8 @@
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
     "incremental": false,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "declaration": true
   },
   "include": [
     "./**/*.ts"

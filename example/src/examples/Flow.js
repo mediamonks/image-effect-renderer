@@ -1,6 +1,6 @@
-import {ImageEffectRenderer} from '../../../dist/';
-import flow_image from '../shader/flow_image.glsl';
-import flow_buffer from '../shader/flow_buffer.glsl';
+import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import flow_image from '../shader/flow_image.glsl?raw';
+import flow_buffer from '../shader/flow_buffer.glsl?raw';
 import ImageLoader from "../utils/ImageLoader";
 
 export default class Flow {

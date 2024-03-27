@@ -1,5 +1,5 @@
-import {ImageEffectRenderer} from '../../../dist/';
-import shader from '../shader/mask_2.glsl';
+import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import shader from '../shader/mask_2.glsl?raw';
 import ImageLoader from "../utils/ImageLoader";
 
 export default class Mask2 {

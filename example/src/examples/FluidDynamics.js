@@ -1,7 +1,7 @@
-import {ImageEffectRenderer} from '../../../dist/';
-import fluid_dynamics from '../shader/fluid_dynamics.glsl';
-import fluid_paint from '../shader/fluid_paint.glsl';
-import fluid_image from '../shader/fluid_image.glsl';
+import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import fluid_dynamics from '../shader/fluid_dynamics.glsl?raw';
+import fluid_paint from '../shader/fluid_paint.glsl?raw';
+import fluid_image from '../shader/fluid_image.glsl?raw';
 
 export default class FluidDynamics {
   constructor(wrapper, options = {}) {

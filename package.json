@@ -16,8 +16,15 @@
   "repository": "git@github.com:mediamonks/image-effect-renderer.git",
   "author": "Reinder Nijhoff <reinder@mediamonks.com>",
   "license": "MIT",
-  "exports": "./dist/index.js",
   "type": "module",
+  "main": "./dist/image-effect-renderer.umd.cjs",
+  "module": "./dist/image-effect-renderer.js",
+  "exports": {
+    ".": {
+      "import": "./dist/image-effect-renderer.js",
+      "require": "./dist/image-effect-renderer.umd.cjs"
+    }
+  },
   "files": [
     "dist/**/*",
     "README.md"
@@ -26,9 +33,9 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "npm run build:ts -- --watch",
+    "dev": "vite",
     "build": "npm run clean && npm run build:ts",
-    "build:ts": "tsc -p ./tsconfig.build.json",
+    "build:ts": "vite build",
     "clean": "shx rm -rf dist node_modules/.cache/.tsbuildinfo",
     "typecheck": "tsc --project tsconfig.json --noEmit --noUnusedLocals",
     "prepare-publish": "tsx ./scripts/preparePublish.ts"
@@ -38,7 +45,9 @@
     "shelljs": "^0.8.5",
     "shx": "^0.3.4",
     "tsx": "^4.6.2",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3"
   },
   "engines": {
     "node": ">=16.0.0"
