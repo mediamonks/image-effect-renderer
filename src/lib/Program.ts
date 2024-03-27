@@ -239,11 +239,19 @@ export default class Program {
             uniform highp sampler2D iChannel1;
             uniform highp sampler2D iChannel2;
             uniform highp sampler2D iChannel3;
+            uniform highp sampler2D iChannel4;
+            uniform highp sampler2D iChannel5;
+            uniform highp sampler2D iChannel6;
+            uniform highp sampler2D iChannel7;
 
             uniform vec2 iChannelResolution0;
             uniform vec2 iChannelResolution1;
             uniform vec2 iChannelResolution2;
             uniform vec2 iChannelResolution3;
+            uniform vec2 iChannelResolution4;
+            uniform vec2 iChannelResolution5;
+            uniform vec2 iChannelResolution6;
+            uniform vec2 iChannelResolution7;
             `;
     }
 }

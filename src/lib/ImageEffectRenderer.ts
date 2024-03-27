@@ -6,7 +6,7 @@ import {RendererInstance} from "./RendererInstance.js";
  * @property {boolean} loop - Determines if the renderer should loop. Defaults to false.
  * @property {boolean} autoResize - Determines if the renderer should automatically resize. Defaults to true.
  * @property {number} pixelRatio - The pixel ratio of the renderer. Defaults to window.devicePixelRatio.
- * @property {boolean} useSharedContext - Determines if the renderer should use a shared WebGL context. Defaults to true.
+ * @property {boolean} useSharedContext - Determines if the renderer should use a shared WebGL context. Defaults to false.
  * @property {boolean} asyncCompile - Determines if the renderer should compile shaders asynchronously. Defaults to true.
  */
 export type ImageEffectRendererOptions = {
@@ -22,7 +22,7 @@ export default class ImageEffectRenderer {
         loop: false,
         autoResize: true,
         pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 1,
-        useSharedContext: true,
+        useSharedContext: false,
         asyncCompile: true,
     };
 

@@ -15,6 +15,6 @@
     "vite": "^5.1.6"
   },
   "dependencies": {
-    "@mediamonks/image-effect-renderer": "^2.1.2"
+    "@mediamonks/image-effect-renderer": "^2.1.3"
   }
 }
