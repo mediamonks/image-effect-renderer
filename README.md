@@ -35,15 +35,14 @@ ImageEffectRenderer.releaseTemporary(renderer);
 
 You can set the following options when creating a renderer:
 
-- **loop** _(boolean)_ - If set to true, the renderer will loop. The default value is `false`.
-- **autoResize** _(boolean)_ - If set to true, the renderer will automatically resize. The default value is `true`.
+- **loop** _(boolean)_ - The renderer will play automatically if set to true. The default value is `false`.
+- **autoResize** _(boolean)_ - If set to true, the renderer will automatically resize to fit the wrapperElement. The default value is `true`.
 - **pixelRatio** _(number)_ - This sets the pixel ratio of the renderer. The default value is `window.devicePixelRatio`.
 - **useSharedContext** _(boolean)_ - If set to true, the renderer will use a shared WebGL context. The default value is `false`.
 - **asyncCompile** _(boolean)_ - If set to true, the renderer will compile shaders asynchronously. The default value is `true`.
 
-ImageEffectRenderers can share one WebGLContext. This is needed if you have multiple ImageEffectRenderers active at a time. 
-If you have only one ImageEffectRenderer on a page or if you create a large ImageEffectRenderer (i.e. fullscreen),
-the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
+ImageEffectRenderers can share one WebGLContext (see `useSharedContext`). This is needed if multiple ImageEffectRenderers are active at a time. 
+If you have only one ImageEffectRenderer on a page or if you create a large ImageEffectRenderer (i.e. fullscreen), the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
 
 ### setImage(slotIndex, image, options)
 
