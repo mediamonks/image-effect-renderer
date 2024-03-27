@@ -33,7 +33,7 @@ ImageEffectRenderer.releaseTemporary(renderer);
 
 ### ImageEffectRendererOptions
 
-You can set the following options when creating an renderer:
+You can set the following options when creating a renderer:
 
 - **loop** _(boolean)_ - If set to true, the renderer will loop. The default value is `false`.
 - **autoResize** _(boolean)_ - If set to true, the renderer will automatically resize. The default value is `true`.
@@ -45,11 +45,11 @@ ImageEffectRenderers can share one WebGLContext. This is needed if you have mult
 If you have only one ImageEffectRenderer on a page or if you create a large ImageEffectRenderer (i.e. fullscreen),
 the ImageEffectRenderer will run faster if you create it having its own WebGLContext:
 
-### setImage(slotIndex: number, image, options)
+### setImage(slotIndex, image, options)
 
 This library allows adding images into up to eight slots, which can be utilized in the shader (as sampler2D iChannel0 to iChannel7). Ensure images are fully loaded before adding them.
 - `slotIndex` _(number)_ - Index of the slot where the image will be set.
-- `image` _(HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | RendererBuffer)_ - The image data that you want to use in the shader.
+- `image` _(HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | RendererBuffer)_ - The image data you want to use in the shader.
 - `options` _(Partial<ImageOptions>)_ - Custom configuration for image handling. This is optional.
 
 ```ts
@@ -208,7 +208,7 @@ renderer.setUniformMatrix('uniformName', matrix);
 
 ## Multiple buffers
 
-Creating multiple ping-pong buffers, each functioning with its shader is possible and functions analogously to adding extra buffer tabs in Shadertoy.
+It is possible to create multiple ping-pong buffers, each functioning with its shader, which functions analogously to adding extra buffer tabs in Shadertoy.
 
 ```
 renderer.createBuffer(0, shader);
