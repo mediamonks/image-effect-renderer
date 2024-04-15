@@ -25,6 +25,7 @@
       "require": "./dist/image-effect-renderer.umd.cjs"
     }
   },
+  "types": "./index.d.ts",
   "files": [
     "dist/**/*",
     "README.md"
