@@ -19,13 +19,14 @@
   "type": "module",
   "main": "./dist/image-effect-renderer.umd.cjs",
   "module": "./dist/image-effect-renderer.js",
+  "types": "./index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/image-effect-renderer.js",
-      "require": "./dist/image-effect-renderer.umd.cjs"
+      "require": "./dist/image-effect-renderer.umd.cjs",
+      "types": "./index.d.ts"
     }
   },
-  "types": "./index.d.ts",
   "files": [
     "dist/**/*",
     "README.md"
