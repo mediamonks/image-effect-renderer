@@ -4,6 +4,12 @@ The image-effect-renderer is a lightweight package that allows you to run fragme
 
 The ImageEffectRenderer supports the most common variables used in [Shadertoy](https://www.shadertoy.com/) and the syntax of fragments shaders from Shadertoy and [OneShader](https://www.oneshader.net/). This makes it easy to prototype different effects using Shadertoy or OneShader.
 
+## Demo
+
+- [Stress test with multiple demos](https://mediamonks.github.io/image-effect-renderer/).
+
+This is a build from the repository's example/ directory.
+
 ## Getting started
 
 ### Installing
