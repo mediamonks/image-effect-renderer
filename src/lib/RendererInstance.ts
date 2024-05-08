@@ -41,8 +41,11 @@ export class RendererInstance extends Renderer {
         } else {
             this.canvas = <HTMLCanvasElement>this.gl.canvas;
         }
+        this.canvas.style.inset = `0`;
         this.canvas.style.width = `100%`;
         this.canvas.style.height = `100%`;
+        this.canvas.style.margin = `0`;
+        this.canvas.style.display = `block`;
 
         this.container.appendChild(this.canvas);
 
