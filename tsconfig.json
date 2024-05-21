@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "esnext",
     "module": "NodeNext",
     "lib": [
       "ESNext",
@@ -17,9 +17,10 @@
     "verbatimModuleSyntax": true,
     "incremental": false,
     "outDir": "./dist",
-    "declaration": true
+    "declaration": true,
+    "allowJs": true
   },
   "include": [
-    "./**/*.ts"
+    "./src/**/*"
   ]
 }
