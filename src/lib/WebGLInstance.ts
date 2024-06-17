@@ -5,8 +5,6 @@ import {UniformType} from "./Uniform.js";
 import type {Texture} from "./Texture.js.js";
 
 export class WebGLInstance {
-    public isWebGL2: boolean = true;
-
     public context: WebGLRenderingContext;
     public canvas: HTMLCanvasElement;
 
@@ -31,8 +29,7 @@ export class WebGLInstance {
 
         this.context = <WebGLRenderingContext>this.canvas.getContext('webgl2', options);
         if (!this.context) {
-            this.context = <WebGLRenderingContext>this.canvas.getContext('webgl', options);
-            this.isWebGL2 = false;
+            throw new Error('Unable to create WebGL2 context.');
         }
 
         this.context.getExtension('WEBGL_color_buffer_float');
