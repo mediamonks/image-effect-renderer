@@ -21,7 +21,7 @@ export default class Program {
 
   private uniformLocations: { [k: string]: WebGLUniformLocation | null } = {};
   private attributeLocations: { [k: string]: number } = {};
-  private _shaderCompiled: boolean = false;
+  private _compiled: boolean = false;
 
   constructor(gl: WebGLInstance, fsSource: string) {
     this.gl = gl;
@@ -79,8 +79,8 @@ export default class Program {
   }
 
   public get shaderCompiled(): boolean {
-    this._shaderCompiled = this._shaderCompiled || (!this.ext || this.gl.context.getProgramParameter(this._program, this.ext.COMPLETION_STATUS_KHR));
-    return this._shaderCompiled;
+    this._compiled = this._compiled || (!this.ext || this.gl.context.getProgramParameter(this._program, this.ext.COMPLETION_STATUS_KHR));
+    return this._compiled;
   }
 
   public use() {
@@ -143,7 +143,37 @@ export default class Program {
   }
 
   private getVertexShader(type: ProgramType) {
-    const oneshader_es300: string = `#version 300 es
+    switch (type) {
+      case PROGRAM_SHADERTOY:
+        return `#version 300 es
+                    in vec2 aPos;
+                    in vec2 aUV;
+
+                    out vec2 vUV0;
+
+                    void main(void) {
+                        vUV0 = aUV;
+                        gl_Position = vec4(aPos, 0.0, 1.0);
+                    }
+                `;
+      case PROGRAM_ONESHADER:
+        return `attribute vec3 aPos;
+                attribute vec2 aUV;
+
+                uniform float iAspect;
+
+                varying vec2 vScreen;
+                varying vec2 vUV0;
+
+                void main(void) {
+                    vUV0 = aUV;
+                    vScreen = aPos.xy;
+                    vScreen.x *= iAspect;
+                    gl_Position = vec4(aPos, 1.0);
+                }`;
+      case PROGRAM_ONESHADER_ES300:
+      default:
+        return `#version 300 es
                 in  vec3 aPos;
                 in vec2 aUV;
 
@@ -158,40 +188,6 @@ export default class Program {
                     vScreen.x *= iAspect;
                     gl_Position = vec4(aPos, 1.0);
                 }`;
-    const oneshader: string = `attribute vec3 aPos;
-                attribute vec2 aUV;
-
-                uniform float iAspect;
-
-                varying vec2 vScreen;
-                varying vec2 vUV0;
-
-                void main(void) {
-                    vUV0 = aUV;
-                    vScreen = aPos.xy;
-                    vScreen.x *= iAspect;
-                    gl_Position = vec4(aPos, 1.0);
-                }`;
-    const shadertoy: string = `#version 300 es
-                    in vec2 aPos;
-                    in vec2 aUV;
-
-                    out vec2 vUV0;
-
-                    void main(void) {
-                        vUV0 = aUV;
-                        gl_Position = vec4(aPos, 0.0, 1.0);
-                    }
-                `;
-
-    switch (type) {
-      case PROGRAM_SHADERTOY:
-        return shadertoy;
-      case PROGRAM_ONESHADER:
-        return oneshader;
-      case PROGRAM_ONESHADER_ES300:
-      default:
-        return oneshader_es300;
 
     }
   }
