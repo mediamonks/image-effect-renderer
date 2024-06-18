@@ -1,4 +1,4 @@
-import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import {ImageEffectRenderer} from '../../../src/index';
 import shader from '../shader/mask_1.glsl?raw';
 import ImageLoader from "../utils/ImageLoader";
 

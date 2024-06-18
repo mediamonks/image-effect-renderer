@@ -1,4 +1,4 @@
-import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import {ImageEffectRenderer} from '../../../src/index';
 import Stargate from "./Stargate";
 import Flow from "./Flow";
 import FluidDynamics from "./FluidDynamics";

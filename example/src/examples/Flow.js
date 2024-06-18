@@ -1,4 +1,4 @@
-import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import {ImageEffectRenderer} from '../../../src/index';
 import flow_image from '../shader/flow_image.glsl?raw';
 import flow_buffer from '../shader/flow_buffer.glsl?raw';
 import ImageLoader from "../utils/ImageLoader";

@@ -30,7 +30,7 @@ const poolWebGLInstance: WebGLInstance[] = [];
 let sharedInstance: WebGLInstance;
 let sharedTime: number = -1;
 
-export default class ImageEffectRenderer {
+export class ImageEffectRenderer {
   constructor() {
     throw new Error('Use ImageEffectRenderer.createTemporary to create an ImageEffectRenderer');
   }

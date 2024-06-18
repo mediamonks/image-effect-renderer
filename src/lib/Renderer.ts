@@ -1,5 +1,5 @@
 import {WebGLInstance} from './WebGLInstance.js';
-import Uniform, {UniformType} from "./Uniform.js";
+import Uniform, {UNIFORM_FLOAT, UNIFORM_INT, UNIFORM_MATRIX, UNIFORM_VEC2, UNIFORM_VEC3, UNIFORM_VEC4, type UniformType} from "./Uniform.js";
 import type Program from "./Program.js";
 import type {RendererBuffer} from "./RendererBuffer.js";
 import type {Texture} from "./Texture.js.js";
@@ -26,11 +26,11 @@ export type ImageOptions = {
 }
 
 export const defaultImageOptions: ImageOptions = {
-  clampX:          true,
-  clampY:          true,
-  flipY:           false,
-  useMipmap:       true,
-  useCache:        true,
+  clampX: true,
+  clampY: true,
+  flipY: false,
+  useMipmap: true,
+  useCache: true,
   minFilterLinear: true,
   magFilterLinear: true,
 };
@@ -98,8 +98,8 @@ export class Renderer {
 
       this.textures[slotIndex] = {
         texture: undefined,
-        buffer:  image,
-        cached:  false,
+        buffer: image,
+        cached: false,
       };
 
       this.gl.setTextureParameter(image.src.texture, bufferOptions);
@@ -121,8 +121,8 @@ export class Renderer {
       }
       this.textures[slotIndex] = {
         texture: texture,
-        buffer:  undefined,
-        cached:  imageOptions.useCache,
+        buffer: undefined,
+        cached: imageOptions.useCache,
       };
       context.bindTexture(context.TEXTURE_2D, texture);
       context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, options.flipY ? 1 : 0);
@@ -138,7 +138,7 @@ export class Renderer {
    * @param value - Float value.
    */
   public setUniformFloat(name: string, value: number): void {
-    this.setUniform(name, UniformType.FLOAT, value, 0, 0, 0, undefined);
+    this.setUniform(name, UNIFORM_FLOAT, value, 0, 0, 0, undefined);
   }
 
   /**
@@ -147,7 +147,7 @@ export class Renderer {
    * @param value - Integer value.
    */
   public setUniformInt(name: string, value: number): void {
-    this.setUniform(name, UniformType.INT, value, 0, 0, 0, undefined);
+    this.setUniform(name, UNIFORM_INT, value, 0, 0, 0, undefined);
   }
 
   /**
@@ -157,7 +157,7 @@ export class Renderer {
    * @param y - Y value.
    */
   public setUniformVec2(name: string, x: number, y: number): void {
-    this.setUniform(name, UniformType.VEC2, x, y, 0, 0, undefined);
+    this.setUniform(name, UNIFORM_VEC2, x, y, 0, 0, undefined);
   }
 
   /**
@@ -168,7 +168,7 @@ export class Renderer {
    * @param z - Z value.
    */
   public setUniformVec3(name: string, x: number, y: number, z: number): void {
-    this.setUniform(name, UniformType.VEC3, x, y, z, 0, undefined);
+    this.setUniform(name, UNIFORM_VEC3, x, y, z, 0, undefined);
   }
 
   /**
@@ -180,7 +180,7 @@ export class Renderer {
    * @param w - W value.
    */
   public setUniformVec4(name: string, x: number, y: number, z: number, w: number): void {
-    this.setUniform(name, UniformType.VEC4, x, y, z, w, undefined);
+    this.setUniform(name, UNIFORM_VEC4, x, y, z, w, undefined);
   }
 
   /**
@@ -189,7 +189,7 @@ export class Renderer {
    * @param matrix - 4X4 matrix.
    */
   public setUniformMatrix(name: string, matrix: Float32Array): void {
-    this.setUniform(name, UniformType.MATRIX, 0, 0, 0, 0, matrix);
+    this.setUniform(name, UNIFORM_MATRIX, 0, 0, 0, 0, matrix);
   }
 
   public destruct() {

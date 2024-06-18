@@ -2,11 +2,13 @@ import {WebGLInstance} from "./WebGLInstance.js";
 
 export type FrameBufferOptions = {
   type: number,
+  pixelRatio: number,
   msaa: boolean,
 }
 
-const defaultFrameBufferOptions: FrameBufferOptions = {
-  type: WebGLRenderingContext.UNSIGNED_BYTE,
+export const defaultFrameBufferOptions: FrameBufferOptions = {
+  type: 5121, // WebGLRenderingContext.UNSIGNED_BYTE,
+  pixelRatio: 1,
   msaa: false,
 };
 

@@ -1,7 +1,6 @@
 import type {ImageOptions} from "./Renderer.js";
 import Program from "./Program.js";
-import type Uniform from "./Uniform.js";
-import {UniformType} from "./Uniform.js";
+import Uniform, {UNIFORM_FLOAT, UNIFORM_INT, UNIFORM_MATRIX, UNIFORM_VEC2, UNIFORM_VEC3, UNIFORM_VEC4} from "./Uniform.js";
 import type {Texture} from "./Texture.js.js";
 
 export class WebGLInstance {
@@ -17,12 +16,12 @@ export class WebGLInstance {
     this.canvas = canvas || document.createElement('canvas');
 
     const options = {
-      premultipliedAlpha:    true,
-      alpha:                 true,
+      premultipliedAlpha: true,
+      alpha: true,
       preserveDrawingBuffer: false,
-      antialias:             false,
-      depth:                 false,
-      stencil:               false,
+      antialias: false,
+      depth: false,
+      stencil: false,
     };
 
     this.context = <WebGLRenderingContext>this.canvas.getContext('webgl2', options);
@@ -118,22 +117,22 @@ export class WebGLInstance {
       const location = program.getUniformLocation(u.name);
       if (location !== null) {
         switch (u.type) {
-          case UniformType.INT:
+          case UNIFORM_INT:
             context.uniform1i(location, u.x);
             break;
-          case UniformType.FLOAT:
+          case UNIFORM_FLOAT:
             context.uniform1f(location, u.x);
             break;
-          case UniformType.VEC2:
+          case UNIFORM_VEC2:
             context.uniform2f(location, u.x, u.y);
             break;
-          case UniformType.VEC3:
+          case UNIFORM_VEC3:
             context.uniform3f(location, u.x, u.y, u.z);
             break;
-          case UniformType.VEC4:
+          case UNIFORM_VEC4:
             context.uniform4f(location, u.x, u.y, u.z, u.w);
             break;
-          case UniformType.MATRIX:
+          case UNIFORM_MATRIX:
             context.uniformMatrix4fv(location, false, <Float32Array>u.matrix);
             break;
         }

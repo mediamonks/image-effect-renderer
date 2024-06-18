@@ -13,8 +13,5 @@
   "license": "MIT",
   "devDependencies": {
     "vite": "^5.1.6"
-  },
-  "dependencies": {
-    "@mediamonks/image-effect-renderer": "^2.1.3"
   }
 }

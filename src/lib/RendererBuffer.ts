@@ -1,4 +1,4 @@
-import {FrameBuffer, type FrameBufferOptions} from "./FrameBuffer.js";
+import {defaultFrameBufferOptions, FrameBuffer, type FrameBufferOptions} from "./FrameBuffer.js";
 import {WebGLInstance} from "./WebGLInstance.js";
 import {defaultImageOptions, type ImageOptions, Renderer} from "./Renderer.js";
 
@@ -6,10 +6,9 @@ export type BufferOptions = ImageOptions & FrameBufferOptions;
 
 const defaultBufferOptions: BufferOptions = {
   ...defaultImageOptions,
+  ...defaultFrameBufferOptions,
   useMipmap: false,
-  useCache:  false,
-  type:      5121, // WebGLRenderingContext.UNSIGNED_BYTE,
-  msaa:      false,
+  useCache: false,
 };
 
 export class RendererBuffer extends Renderer {

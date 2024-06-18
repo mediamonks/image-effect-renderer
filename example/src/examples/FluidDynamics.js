@@ -1,4 +1,4 @@
-import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import {ImageEffectRenderer} from '../../../src/index';
 import fluid_dynamics from '../shader/fluid_dynamics.glsl?raw';
 import fluid_paint from '../shader/fluid_paint.glsl?raw';
 import fluid_image from '../shader/fluid_image.glsl?raw';
@@ -18,17 +18,20 @@ export default class FluidDynamics {
     this.renderer.createBuffer(0, fluid_dynamics, {
       type: WebGLRenderingContext.FLOAT,
       clampX: false,
-      clampY: false
+      clampY: false,
+      pixelRatio: 0.5
     });
     this.renderer.createBuffer(1, fluid_dynamics, {
       type: WebGLRenderingContext.FLOAT,
       clampX: false,
-      clampY: false
+      clampY: false,
+      pixelRatio: 0.5
     });
     this.renderer.createBuffer(2, fluid_dynamics, {
       type: WebGLRenderingContext.FLOAT,
       clampX: false,
-      clampY: false
+      clampY: false,
+      pixelRatio: 0.5
     });
 
     this.renderer.buffers[0].setImage(0, this.renderer.buffers[2]);

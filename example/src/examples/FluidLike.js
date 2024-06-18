@@ -1,4 +1,4 @@
-import {ImageEffectRenderer} from '@mediamonks/image-effect-renderer';
+import {ImageEffectRenderer} from '../../../src/index';
 import shader from '../shader/fluid_like.glsl?raw';
 
 export default class FluidLike {
