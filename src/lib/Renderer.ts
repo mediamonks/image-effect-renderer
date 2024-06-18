@@ -43,7 +43,7 @@ export class Renderer {
 
   public gl: WebGLInstance;
   protected frame: number = 0;
-
+  protected mouse: [number, number, number, number] = [0, 0, 0, 0];
   private uniforms: { [k: string]: Uniform } = {};
   private textures: Texture[] = [];
 
@@ -53,6 +53,10 @@ export class Renderer {
 
   public get shaderCompiled(): boolean {
     return this.program.shaderCompiled;
+  }
+
+  public get iMouseUsed(): boolean {
+    return this.program.getUniformLocation('iMouse') !== null;
   }
 
   /**
@@ -209,6 +213,9 @@ export class Renderer {
     this.setUniformInt('iFrame', this.frame);
     this.setUniformFloat('iAspect', width / height);
     this.setUniformVec2('iResolution', width, height);
+
+    const mouse = this.main.mouse;
+    this.setUniformVec4('iMouse', mouse[0], mouse[1], mouse[2], mouse[3]);
 
     this.gl.setUniforms(this.uniforms, this.program);
     this.gl.bindTextures(this.textures);

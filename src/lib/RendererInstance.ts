@@ -3,6 +3,7 @@ import type {ImageEffectRendererOptions} from "./ImageEffectRenderer.js";
 import {Renderer} from "./Renderer.js";
 import {type BufferOptions, RendererBuffer} from "./RendererBuffer.js";
 import Program from "./Program.js";
+import {bindMouseListener, getMousePosition, getNormalizedMousePosition} from "./MouseListener.js";
 
 export class RendererInstance extends Renderer {
   private static index: number = 0;
@@ -42,10 +43,10 @@ export class RendererInstance extends Renderer {
       this.canvas = <HTMLCanvasElement>this.gl.canvas;
     }
     Object.assign(this.canvas.style, {
-      inset:   '0',
-      width:   '100%',
-      height:  '100%',
-      margin:  '0',
+      inset: '0',
+      width: '100%',
+      height: '100%',
+      margin: '0',
       display: 'block',
     });
 
@@ -67,6 +68,10 @@ export class RendererInstance extends Renderer {
 
   public get drawThisFrame(): boolean {
     return (this.options.loop || this.drawOneFrame) && this.width > 0 && this.height > 0 && (!this.options.asyncCompile || this.allShadersCompiled);
+  }
+
+  public override get iMouseUsed(): boolean {
+    return super.iMouseUsed || this.buffers.some(buffer => buffer && buffer.iMouseUsed);
   }
 
   private get allShadersCompiled(): boolean {
@@ -143,6 +148,12 @@ export class RendererInstance extends Renderer {
 
     this.tickFuncs.forEach(func => func(dt));
 
+    if (this.iMouseUsed) {
+      const xprev = this.mouse[0], yprev = this.mouse[1];
+      const [x, y] = getNormalizedMousePosition(this.container.getBoundingClientRect(), getMousePosition());
+      this.mouse = [x, y, xprev, yprev];
+    }
+
     // update buffers
     this.buffers.forEach(buffer => {
       if (buffer) {
@@ -164,6 +175,10 @@ export class RendererInstance extends Renderer {
         this._ready = true;
         this.readyFuncs.forEach(func => func());
         this.readyFuncs = [];
+
+        if (this.iMouseUsed) {
+          bindMouseListener(document.body);
+        }
       }
     }
   }

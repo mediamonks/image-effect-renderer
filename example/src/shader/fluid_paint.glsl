@@ -1,6 +1,3 @@
-uniform vec4 uMouse;
-uniform float uMouseDown;
-
 // The MIT License
 // Copyright © 2015 Inigo Quilez
 // https://www.shadertoy.com/view/ll2GD3
@@ -19,7 +16,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     vec3 newCol = pal(iTime, vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(1.0, 1.0, 1.0), vec3(0.0, 0.10, 0.20));
 
-    col += newCol * 0.01*distance(uMouse.xy, uMouse.zw)/(dot(uv - uMouse.xy, uv - uMouse.xy)+0.002);
+    col += newCol * 0.01*distance(iMouse.xy, iMouse.zw)/(dot(uv - iMouse.xy, uv - iMouse.xy)+0.002);
 
     col = clamp(0.998 * col - 0.00005, 0., 5.);
     fragColor = vec4(col, 1.);
