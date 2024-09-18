@@ -13,8 +13,6 @@ export class RendererInstance extends Renderer {
   public options: ImageEffectRendererOptions;
   public time: number = 0;
 
-  private index: number;
-
   private tickFuncs: ((dt: number) => void) [] = [];
   private readyFuncs: (() => void) [] = [];
 
@@ -30,7 +28,6 @@ export class RendererInstance extends Renderer {
     super(glInstance);
 
     this.options = {...options};
-    this.index = RendererInstance.index++;
     this.container = container;
     this.main = this;
 
@@ -43,10 +40,10 @@ export class RendererInstance extends Renderer {
       this.canvas = <HTMLCanvasElement>this.gl.canvas;
     }
     Object.assign(this.canvas.style, {
-      inset: '0',
-      width: '100%',
-      height: '100%',
-      margin: '0',
+      inset:   '0',
+      width:   '100%',
+      height:  '100%',
+      margin:  '0',
       display: 'block',
     });
 

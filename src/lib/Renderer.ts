@@ -26,11 +26,11 @@ export type ImageOptions = {
 }
 
 export const defaultImageOptions: ImageOptions = {
-  clampX: true,
-  clampY: true,
-  flipY: false,
-  useMipmap: true,
-  useCache: true,
+  clampX:          true,
+  clampY:          true,
+  flipY:           false,
+  useMipmap:       true,
+  useCache:        true,
   minFilterLinear: true,
   magFilterLinear: true,
 };
@@ -81,12 +81,12 @@ export class Renderer {
     this.setUniformInt(`iChannel${slotIndex}`, slotIndex);
     // get image width and height
     let width, height;
-    if (image instanceof VideoFrame) {
+    if (typeof VideoFrame !== 'undefined' && image instanceof VideoFrame) {
       width = image.displayWidth;
       height = image.displayHeight;
     } else {
-      width = image.width;
-      height = image.height;
+      width = (image as any).width;
+      height = (image as any).height;
     }
 
     this.setUniformVec2(`iChannelResolution${slotIndex}`, width, height);
@@ -102,8 +102,8 @@ export class Renderer {
 
       this.textures[slotIndex] = {
         texture: undefined,
-        buffer: image,
-        cached: false,
+        buffer:  image,
+        cached:  false,
       };
 
       this.gl.setTextureParameter(image.src.texture, bufferOptions);
@@ -125,8 +125,8 @@ export class Renderer {
       }
       this.textures[slotIndex] = {
         texture: texture,
-        buffer: undefined,
-        cached: imageOptions.useCache,
+        buffer:  undefined,
+        cached:  imageOptions.useCache,
       };
       context.bindTexture(context.TEXTURE_2D, texture);
       context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, options.flipY ? 1 : 0);
