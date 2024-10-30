@@ -12,6 +12,6 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "vite": "^5.1.6"
+    "vite": "^5.2.14"
   }
 }
