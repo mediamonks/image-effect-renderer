@@ -1,13 +1,50 @@
 import {WebGLInstance} from "./WebGLInstance.js";
 import type {ImageEffectRendererOptions} from "./ImageEffectRenderer.js";
-import {Renderer} from "./Renderer.js";
+import {type ImageOptions, type ImageSource, Renderer} from "./Renderer.js";
 import {type BufferOptions, RendererBuffer} from "./RendererBuffer.js";
 import Program from "./Program.js";
 import {bindMouseListener, getMousePosition, getNormalizedMousePosition} from "./MouseListener.js";
 
-export class RendererInstance extends Renderer {
-  private static index: number = 0;
+export const BUFFER_0 = 0;
+export const BUFFER_1 = 1;
+export const BUFFER_2 = 2;
+export const BUFFER_3 = 3;
+export const BUFFER_4 = 4;
+export const BUFFER_5 = 5;
+export const BUFFER_6 = 6;
+export const BUFFER_7 = 7;
 
+export type BufferIndex =
+  typeof BUFFER_0
+  | typeof BUFFER_1
+  | typeof BUFFER_2
+  | typeof BUFFER_3
+  | typeof BUFFER_4
+  | typeof BUFFER_5
+  | typeof BUFFER_6
+  | typeof BUFFER_7;
+
+export type ImagesData = {
+  slotIndex: number,
+  image: ImageSource & { bufferIndex?: BufferIndex },
+  options?: Partial<ImageOptions>,
+}[];
+
+export type BufferData = {
+  index: BufferIndex,
+  shader: string,
+  options?: Partial<BufferOptions>,
+  images?: ImagesData,
+}
+
+export type RendererData = {
+  shader: string,
+  options?: Partial<BufferOptions>,
+  images?: ImagesData,
+  buffers?: BufferData[],
+}
+
+export class RendererInstance extends Renderer {
   public canvas: HTMLCanvasElement;
   public buffers: RendererBuffer[] = [];
   public options: ImageEffectRendererOptions;
@@ -40,10 +77,10 @@ export class RendererInstance extends Renderer {
       this.canvas = <HTMLCanvasElement>this.gl.canvas;
     }
     Object.assign(this.canvas.style, {
-      inset:   '0',
-      width:   '100%',
-      height:  '100%',
-      margin:  '0',
+      inset: '0',
+      width: '100%',
+      height: '100%',
+      margin: '0',
       display: 'block',
     });
 
@@ -134,6 +171,54 @@ export class RendererInstance extends Renderer {
   public drawFrame(time: number = 0): void {
     this.time = time / 1000;
     this.drawOneFrame = true;
+  }
+
+  /**
+   * Apply data to the renderer instance, including buffers and images.
+   * Buffers are created first, then images are set for both the main renderer and buffers.
+   *
+   * @param data - Data object containing buffers and images setup.
+   */
+  public setData(data: RendererData): void {
+    // first create buffers
+    data.buffers && this.setBuffersData(data.buffers);
+    // then set images
+    data.images && this.setImagesData(data.images);
+  }
+
+  /**
+   * Set multiple images to slots for rendering.
+   * Possible images can be image elements, video elements, canvas elements, or buffers.
+   * Images can reference buffers using the bufferIndex property.
+   *
+   * @param images - Array of image configurations to set.
+   * @param target - The renderer to set images on (defaults to this renderer instance).
+   */
+  public setImagesData(images: ImagesData, target: Renderer | undefined = this): void {
+    images.forEach(image => {
+      if (image.image.bufferIndex !== undefined) {
+        target?.setImage(image.slotIndex, this.buffers[image.image.bufferIndex] as RendererBuffer, image.options);
+      } else {
+        target?.setImage(image.slotIndex, image.image, image.options);
+      }
+    });
+  }
+
+  /**
+   * Create multiple buffers with their respective shaders and images from buffer data.
+   * Buffers are created in two passes: first all buffers are initialized,
+   * then images are assigned to ensure buffer dependencies are available.
+   *
+   * @param buffers - Array of buffer data configurations to create.
+   */
+  public setBuffersData(buffers: BufferData[]): void {
+    buffers.forEach(buffer => {
+      this.createBuffer(buffer.index, buffer.shader, buffer.options);
+    });
+    // set images for buffers
+    buffers.forEach(buffer => {
+      buffer.images && this.setImagesData(buffer.images, this.buffers[buffer.index]);
+    });
   }
 
   public drawInstance(dt: number): void {

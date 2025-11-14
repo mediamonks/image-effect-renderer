@@ -18,11 +18,11 @@ export type ImageEffectRendererOptions = {
 }
 
 const defaultOptions: ImageEffectRendererOptions = {
-  loop:             false,
-  autoResize:       true,
-  pixelRatio:       typeof window !== 'undefined' ? window.devicePixelRatio : 1,
+  loop: false,
+  autoResize: true,
+  pixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio : 1,
   useSharedContext: false,
-  asyncCompile:     true,
+  asyncCompile: true,
 };
 
 const poolInUse: RendererInstance[] = [];

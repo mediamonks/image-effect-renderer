@@ -4,7 +4,10 @@ export const PROGRAM_SHADERTOY = 0;
 export const PROGRAM_ONESHADER = 2;
 export const PROGRAM_ONESHADER_ES300 = 3;
 
-export type ProgramType = typeof PROGRAM_SHADERTOY | typeof PROGRAM_ONESHADER | typeof PROGRAM_ONESHADER_ES300;
+export type ProgramType =
+  typeof PROGRAM_SHADERTOY
+  | typeof PROGRAM_ONESHADER
+  | typeof PROGRAM_ONESHADER_ES300;
 
 export default class Program {
   private gl: WebGLInstance;

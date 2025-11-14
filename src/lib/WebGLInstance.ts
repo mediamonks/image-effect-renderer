@@ -1,6 +1,13 @@
 import type {ImageOptions} from "./Renderer.js";
 import Program from "./Program.js";
-import Uniform, {UNIFORM_FLOAT, UNIFORM_INT, UNIFORM_MATRIX, UNIFORM_VEC2, UNIFORM_VEC3, UNIFORM_VEC4} from "./Uniform.js";
+import Uniform, {
+  UNIFORM_FLOAT,
+  UNIFORM_INT,
+  UNIFORM_MATRIX,
+  UNIFORM_VEC2,
+  UNIFORM_VEC3,
+  UNIFORM_VEC4
+} from "./Uniform.js";
 import type {Texture} from "./Texture.js.js";
 
 export class WebGLInstance {

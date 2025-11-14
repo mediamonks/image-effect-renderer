@@ -1,5 +1,13 @@
 import {WebGLInstance} from './WebGLInstance.js';
-import Uniform, {UNIFORM_FLOAT, UNIFORM_INT, UNIFORM_MATRIX, UNIFORM_VEC2, UNIFORM_VEC3, UNIFORM_VEC4, type UniformType} from "./Uniform.js";
+import Uniform, {
+  UNIFORM_FLOAT,
+  UNIFORM_INT,
+  UNIFORM_MATRIX,
+  UNIFORM_VEC2,
+  UNIFORM_VEC3,
+  UNIFORM_VEC4,
+  type UniformType
+} from "./Uniform.js";
 import type Program from "./Program.js";
 import type {RendererBuffer} from "./RendererBuffer.js";
 import type {Texture} from "./Texture.js.js";
@@ -26,14 +34,16 @@ export type ImageOptions = {
 }
 
 export const defaultImageOptions: ImageOptions = {
-  clampX:          true,
-  clampY:          true,
-  flipY:           false,
-  useMipmap:       true,
-  useCache:        true,
+  clampX: true,
+  clampY: true,
+  flipY: false,
+  useMipmap: true,
+  useCache: true,
   minFilterLinear: true,
   magFilterLinear: true,
 };
+
+export type ImageSource = TexImageSource | RendererBuffer;
 
 export class Renderer {
   public width: number = 0;
@@ -69,13 +79,30 @@ export class Renderer {
    */
   public setImage(
     slotIndex: number,
-    image: TexImageSource | RendererBuffer,
+    image: ImageSource,
     options: Partial<ImageOptions> = {},
   ): void {
     if (slotIndex >= 8) {
       throw new Error(
         'ImageEffectRenderer: A maximum of 8 slots is available, slotIndex is out of bounds.',
       );
+    }
+
+    // Check if image/video is ready
+    if (image instanceof HTMLImageElement) {
+      if (!image.complete || image.naturalWidth === 0) {
+        image.addEventListener('load', () => {
+          this.setImage(slotIndex, image, options);
+        }, {once: true});
+        return;
+      }
+    } else if (image instanceof HTMLVideoElement) {
+      if (image.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+        image.addEventListener('loadeddata', () => {
+          this.setImage(slotIndex, image, options);
+        }, {once: true});
+        return;
+      }
     }
 
     this.setUniformInt(`iChannel${slotIndex}`, slotIndex);
@@ -102,8 +129,8 @@ export class Renderer {
 
       this.textures[slotIndex] = {
         texture: undefined,
-        buffer:  image,
-        cached:  false,
+        buffer: image,
+        cached: false,
       };
 
       this.gl.setTextureParameter(image.src.texture, bufferOptions);
@@ -125,8 +152,8 @@ export class Renderer {
       }
       this.textures[slotIndex] = {
         texture: texture,
-        buffer:  undefined,
-        cached:  imageOptions.useCache,
+        buffer: undefined,
+        cached: imageOptions.useCache,
       };
       context.bindTexture(context.TEXTURE_2D, texture);
       context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, options.flipY ? 1 : 0);
