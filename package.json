@@ -1,6 +1,6 @@
 {
   "name": "@mediamonks/image-effect-renderer",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "The image-effect-renderer is a lightweight package for running fragment shaders on websites using WebGL. Apply effects to HTML image or video sources. Zero dependencies.",
   "keywords": [
     "fragment shader",
