@@ -10,7 +10,7 @@ import Uniform, {
 } from "./Uniform.js";
 import type Program from "./Program.js";
 import type {RendererBuffer} from "./RendererBuffer.js";
-import type {Texture} from "./Texture.js.js";
+import type {Texture} from "./Texture.js";
 import type {RendererInstance} from "./RendererInstance.js";
 
 /**
@@ -44,6 +44,7 @@ export const defaultImageOptions: ImageOptions = {
 };
 
 export type ImageSource = TexImageSource | RendererBuffer;
+export type CubeMapFaces = [TexImageSource, TexImageSource, TexImageSource, TexImageSource, TexImageSource, TexImageSource];
 
 export class Renderer {
   public width: number = 0;
@@ -53,7 +54,9 @@ export class Renderer {
 
   public gl: WebGLInstance;
   protected frame: number = 0;
+  protected lastTime: number = 0;
   protected mouse: [number, number, number, number] = [0, 0, 0, 0];
+  protected mouseNormalized: [number, number, number, number] = [0, 0, 0, 0];
   private uniforms: { [k: string]: Uniform } = {};
   private textures: Texture[] = [];
 
@@ -66,7 +69,7 @@ export class Renderer {
   }
 
   public get iMouseUsed(): boolean {
-    return this.program.getUniformLocation('iMouse') !== null;
+    return this.program.getUniformLocation('iMouse') !== null || this.program.getUniformLocation('iMouseNormalized') !== null;
   }
 
   /**
@@ -116,7 +119,7 @@ export class Renderer {
       height = (image as any).height;
     }
 
-    this.setUniformVec2(`iChannelResolution${slotIndex}`, width, height);
+    this.setUniformVec3(`iChannelResolution[${slotIndex}]`, width, height, 1.0);
 
     const context = this.gl.context;
     const currentTexture = this.textures[slotIndex];
@@ -131,6 +134,7 @@ export class Renderer {
         texture: undefined,
         buffer: image,
         cached: false,
+        isCubemap: false,
       };
 
       this.gl.setTextureParameter(image.src.texture, bufferOptions);
@@ -154,6 +158,7 @@ export class Renderer {
         texture: texture,
         buffer: undefined,
         cached: imageOptions.useCache,
+        isCubemap: false,
       };
       context.bindTexture(context.TEXTURE_2D, texture);
       context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, options.flipY ? 1 : 0);
@@ -161,6 +166,94 @@ export class Renderer {
 
       this.gl.setTextureParameter(texture, imageOptions);
     }
+  }
+
+  /**
+   * Set a cubemap to a slot for rendering.
+   * Requires an array of 6 images representing the cube faces in order:
+   * +X, -X, +Y, -Y, +Z, -Z
+   *
+   * @param slotIndex - Index of the slot where to set the cubemap.
+   * @param faces - Array of 6 images for the cube faces.
+   * @param options - Custom configuration for image handling.
+   */
+  public setCubeMap(
+    slotIndex: number,
+    faces: CubeMapFaces,
+    options: Partial<ImageOptions> = {},
+  ): void {
+    if (slotIndex >= 8) {
+      throw new Error(
+        'ImageEffectRenderer: A maximum of 8 slots is available, slotIndex is out of bounds.',
+      );
+    }
+
+    if (faces.length !== 6) {
+      throw new Error('ImageEffectRenderer: Cubemap requires exactly 6 face images.');
+    }
+
+    // Check if all images are ready
+    for (let i = 0; i < 6; i++) {
+      const face = faces[i];
+      if (face instanceof HTMLImageElement) {
+        if (!face.complete || face.naturalWidth === 0) {
+          face.addEventListener('load', () => {
+            this.setCubeMap(slotIndex, faces, options);
+          }, {once: true});
+          return;
+        }
+      }
+    }
+
+    this.setUniformInt(`iChannelCube${slotIndex}`, slotIndex);
+
+    // Get dimensions from first face
+    const firstFace = faces[0];
+    let width, height;
+    if (typeof VideoFrame !== 'undefined' && firstFace instanceof VideoFrame) {
+      width = firstFace.displayWidth;
+      height = firstFace.displayHeight;
+    } else {
+      width = (firstFace as any).width;
+      height = (firstFace as any).height;
+    }
+
+    this.setUniformVec3(`iChannelResolution[${slotIndex}]`, width, height, 1.0);
+
+    const context = this.gl.context;
+    const currentTexture = this.textures[slotIndex];
+
+    if (currentTexture && currentTexture.texture && !currentTexture.cached) {
+      context.deleteTexture(<WebGLTexture>currentTexture.texture);
+    }
+
+    const imageOptions = {...defaultImageOptions, ...options};
+    const texture = <WebGLTexture>context.createTexture();
+
+    this.textures[slotIndex] = {
+      texture: texture,
+      buffer: undefined,
+      cached: false,
+      isCubemap: true,
+    };
+
+    context.bindTexture(context.TEXTURE_CUBE_MAP, texture);
+    context.pixelStorei(context.UNPACK_FLIP_Y_WEBGL, 0); // Cubemaps typically don't flip Y
+
+    const faceTargets: [number, number, number, number, number, number] = [
+      context.TEXTURE_CUBE_MAP_POSITIVE_X,
+      context.TEXTURE_CUBE_MAP_NEGATIVE_X,
+      context.TEXTURE_CUBE_MAP_POSITIVE_Y,
+      context.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+      context.TEXTURE_CUBE_MAP_POSITIVE_Z,
+      context.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+    ];
+
+    for (let i = 0; i < 6; i++) {
+      context.texImage2D(faceTargets[i]!, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, faces[i]!);
+    }
+
+    this.gl.setCubeMapParameter(texture, imageOptions);
   }
 
   /**
@@ -235,14 +328,35 @@ export class Renderer {
 
     this.program.use();
 
-    this.setUniformFloat('iGlobalTime', time);
+    const timeDelta = time - this.lastTime;
+    this.lastTime = time;
+
     this.setUniformFloat('iTime', time);
+    this.setUniformFloat('iTimeDelta', timeDelta);
     this.setUniformInt('iFrame', this.frame);
-    this.setUniformFloat('iAspect', width / height);
-    this.setUniformVec2('iResolution', width, height);
+
+    // Detect if iResolution is vec2 or vec3 and set accordingly
+    const resType = this.program.getUniformType('iResolution');
+    if (resType === this.gl.context.FLOAT_VEC2) {
+      this.setUniformVec2('iResolution', width, height);
+    } else {
+      this.setUniformVec3('iResolution', width, height, 1.0);
+    }
 
     const mouse = this.main.mouse;
     this.setUniformVec4('iMouse', mouse[0], mouse[1], mouse[2], mouse[3]);
+
+    const mouseNorm = this.main.mouseNormalized;
+    this.setUniformVec4('iMouseNormalized', mouseNorm[0], mouseNorm[1], mouseNorm[2], mouseNorm[3]);
+
+    // iDate: year, month, day, time in seconds
+    const now = new Date();
+    this.setUniformVec4('iDate', now.getFullYear(), now.getMonth(), now.getDate(),
+      now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000);
+
+    this.setUniformFloat('iSampleRate', 44100.0);
+    this.setUniformFloat('iGlobalTime', time);
+    this.setUniformFloat('iAspect', width / height);
 
     this.gl.setUniforms(this.uniforms, this.program);
     this.gl.bindTextures(this.textures);

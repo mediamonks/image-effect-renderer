@@ -24,7 +24,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   vec2 viscosityForce = 0.55*(tu.xy + td.xy + tr.xy + tl.xy - 4.0*me.xy);
   me.xyw = texture(iChannel0, uv - me.xy*(dt/iResolution.xy)).xyw;
 
-  vec2 externalForces = clamp(vec2(iMouse.xy - iMouse.zw) * (.4 / max(dot(uv - iMouse.xy, uv - iMouse.xy), .05)), -1., 1.);
+  vec2 externalForces = clamp(vec2(iMouseNormalized.xy - iMouseNormalized.zw) * (.4 / max(dot(uv - iMouseNormalized.xy, uv - iMouseNormalized.xy), .05)), -1., 1.);
 
   // Semi−lagrangian advection.
   me.xy += dt*(viscosityForce.xy + externalForces) - 0.2*DdX;

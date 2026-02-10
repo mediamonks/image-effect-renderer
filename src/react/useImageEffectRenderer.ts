@@ -1,12 +1,13 @@
 import {useEffect, useRef, useState} from 'react';
 import {ImageEffectRenderer, type ImageEffectRendererOptions} from '../lib/ImageEffectRenderer.js';
-import type {BufferData, ImagesData, RendererInstance} from '../lib/RendererInstance.js';
+import type {BufferData, ImagesData, CubeMapsData, RendererInstance} from '../lib/RendererInstance.js';
 
 export interface UseImageEffectRendererOptions extends Partial<ImageEffectRendererOptions> {
   shader: string;
   autoInit?: boolean;
   buffers?: BufferData[];
   images?: ImagesData;
+  cubemaps?: CubeMapsData;
 }
 
 export interface UseImageEffectRendererReturn {
@@ -22,7 +23,7 @@ export function useImageEffectRenderer(
   const rendererRef = useRef<RendererInstance | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  const {shader, autoInit = true, buffers, images, ...rendererOptions} = options;
+  const {shader, autoInit = true, buffers, images, cubemaps, ...rendererOptions} = options;
 
   useEffect(() => {
     if (!containerRef.current || !autoInit || !shader) {
@@ -63,6 +64,13 @@ export function useImageEffectRenderer(
       rendererRef.current.setImagesData(images);
     }
   }, [rendererRef.current, images]);
+
+  // Set cubemaps after buffers are ready
+  useEffect(() => {
+    if (rendererRef.current && cubemaps) {
+      rendererRef.current.setCubeMapsData(cubemaps);
+    }
+  }, [rendererRef.current, cubemaps]);
 
   return {
     ref: containerRef,

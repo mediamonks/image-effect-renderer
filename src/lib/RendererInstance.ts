@@ -1,9 +1,9 @@
 import {WebGLInstance} from "./WebGLInstance.js";
 import type {ImageEffectRendererOptions} from "./ImageEffectRenderer.js";
-import {type ImageOptions, type ImageSource, Renderer} from "./Renderer.js";
+import {type ImageOptions, type ImageSource, type CubeMapFaces, Renderer} from './Renderer.js';
 import {type BufferOptions, RendererBuffer} from "./RendererBuffer.js";
 import Program from "./Program.js";
-import {bindMouseListener, getMousePosition, getNormalizedMousePosition} from "./MouseListener.js";
+import {bindMouseListener, getShadertoyMouse, getNormalizedMouse, clearMouseClick} from "./MouseListener.js";
 
 export const BUFFER_0 = 0;
 export const BUFFER_1 = 1;
@@ -30,17 +30,25 @@ export type ImagesData = {
   options?: Partial<ImageOptions>,
 }[];
 
+export type CubeMapsData = {
+  slotIndex: number,
+  faces: CubeMapFaces,
+  options?: Partial<ImageOptions>,
+}[];
+
 export type BufferData = {
   index: BufferIndex,
   shader: string,
   options?: Partial<BufferOptions>,
   images?: ImagesData,
+  cubemaps?: CubeMapsData,
 }
 
 export type RendererData = {
   shader: string,
   options?: Partial<BufferOptions>,
   images?: ImagesData,
+  cubemaps?: CubeMapsData,
   buffers?: BufferData[],
 }
 
@@ -182,8 +190,9 @@ export class RendererInstance extends Renderer {
   public setData(data: RendererData): void {
     // first create buffers
     data.buffers && this.setBuffersData(data.buffers);
-    // then set images
+    // then set images and cubemaps
     data.images && this.setImagesData(data.images);
+    data.cubemaps && this.setCubeMapsData(data.cubemaps);
   }
 
   /**
@@ -215,9 +224,22 @@ export class RendererInstance extends Renderer {
     buffers.forEach(buffer => {
       this.createBuffer(buffer.index, buffer.shader, buffer.options);
     });
-    // set images for buffers
+    // set images and cubemaps for buffers
     buffers.forEach(buffer => {
       buffer.images && this.setImagesData(buffer.images, this.buffers[buffer.index]);
+      buffer.cubemaps && this.setCubeMapsData(buffer.cubemaps, this.buffers[buffer.index]);
+    });
+  }
+
+  /**
+   * Set multiple cubemaps to slots for rendering.
+   *
+   * @param cubemaps - Array of cubemap configurations to set.
+   * @param target - The renderer to set cubemaps on (defaults to this renderer instance).
+   */
+  public setCubeMapsData(cubemaps: CubeMapsData, target: Renderer | undefined = this): void {
+    cubemaps.forEach(cubemap => {
+      target?.setCubeMap(cubemap.slotIndex, cubemap.faces, cubemap.options);
     });
   }
 
@@ -231,9 +253,10 @@ export class RendererInstance extends Renderer {
     this.tickFuncs.forEach(func => func(dt));
 
     if (this.iMouseUsed) {
-      const xprev = this.mouse[0], yprev = this.mouse[1];
-      const [x, y] = getNormalizedMousePosition(this.container.getBoundingClientRect(), getMousePosition());
-      this.mouse = [x, y, xprev, yprev];
+      const rect = this.container.getBoundingClientRect();
+      this.mouse = getShadertoyMouse(rect);
+      this.mouseNormalized = getNormalizedMouse(rect);
+      clearMouseClick();
     }
 
     // update buffers

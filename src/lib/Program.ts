@@ -23,6 +23,7 @@ export default class Program {
   private fsSource: string = '';
 
   private uniformLocations: { [k: string]: WebGLUniformLocation | null } = {};
+  private uniformTypes: { [k: string]: number | null } = {};
   private attributeLocations: { [k: string]: number } = {};
   private _compiled: boolean = false;
 
@@ -105,6 +106,21 @@ export default class Program {
     return this.attributeLocations[name] = this.gl.context.getAttribLocation(this._program, name);
   }
 
+  public getUniformType(name: string): number | null {
+    if (this.uniformTypes[name] !== undefined) {
+      return this.uniformTypes[name];
+    }
+    const gl = this.gl.context;
+    const numUniforms = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < numUniforms; i++) {
+      const info = gl.getActiveUniform(this._program, i);
+      if (info && info.name === name) {
+        return this.uniformTypes[name] = info.type;
+      }
+    }
+    return this.uniformTypes[name] = null;
+  }
+
   private detectType(src: string) {
     const res = /mainImage/gmi;
     const re2 = /^#version[\s]+300[\s]+es[\s]+/gmi;
@@ -133,6 +149,23 @@ export default class Program {
 
                         vec4 texture2D(sampler2D tex, vec2 uv) {
                             return texture(tex, uv);
+                        }
+
+                        vec4 texture2DLod(sampler2D tex, vec2 uv, float lod) {
+                            return textureLod(tex, uv, lod);
+                        }
+
+                        vec4 texture2DLodEXT(sampler2D tex, vec2 uv, float lod) {
+                            return textureLod(tex, uv, lod);
+                        }
+
+                        
+                        vec4 texture2DGrad(sampler2D tex, vec2 uv, vec2 dPdx, vec2 dPdy) {
+                            return textureGrad(tex, uv, dPdx, dPdy);
+                        }
+
+                        vec4 texture2DGradEXT(sampler2D tex, vec2 uv, vec2 dPdx, vec2 dPdy) {
+                            return textureGrad(tex, uv, dPdx, dPdy);
                         }
 
                         void main(void) {
@@ -197,12 +230,21 @@ export default class Program {
 
   private getUniformShader(): string {
     return `
-            uniform vec2 iResolution;
+            #define HW_PERFORMANCE 1
+
+            uniform vec3 iResolution;
             uniform float iTime;
+            uniform float iTimeDelta;
+            uniform int iFrame;
+            uniform float iChannelTime[4];
+            uniform vec4 iMouse;
+            uniform vec4 iMouseNormalized;
+            uniform vec4 iDate;
+            uniform float iSampleRate;
+            uniform vec3 iChannelResolution[4];
+
             uniform float iGlobalTime;
             uniform float iAspect;
-            uniform int iFrame;
-            uniform vec4 iMouse;
 
             uniform highp sampler2D iChannel0;
             uniform highp sampler2D iChannel1;
@@ -213,14 +255,14 @@ export default class Program {
             uniform highp sampler2D iChannel6;
             uniform highp sampler2D iChannel7;
 
-            uniform vec2 iChannelResolution0;
-            uniform vec2 iChannelResolution1;
-            uniform vec2 iChannelResolution2;
-            uniform vec2 iChannelResolution3;
-            uniform vec2 iChannelResolution4;
-            uniform vec2 iChannelResolution5;
-            uniform vec2 iChannelResolution6;
-            uniform vec2 iChannelResolution7;
+            uniform highp samplerCube iChannelCube0;
+            uniform highp samplerCube iChannelCube1;
+            uniform highp samplerCube iChannelCube2;
+            uniform highp samplerCube iChannelCube3;
+            uniform highp samplerCube iChannelCube4;
+            uniform highp samplerCube iChannelCube5;
+            uniform highp samplerCube iChannelCube6;
+            uniform highp samplerCube iChannelCube7;
             `;
   }
 }

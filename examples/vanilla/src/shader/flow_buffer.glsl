@@ -1,7 +1,7 @@
 vec3 mouseInput(vec2 uv) {
-  vec2 d = uv - iMouse.xy;
+  vec2 d = uv - iMouseNormalized.xy;
   d.x *= iResolution.x / iResolution.y;
-  return vec3((iMouse.zw-iMouse.xy) * 20. * smoothstep(.2, 0., length(d)), 0);
+  return vec3((iMouseNormalized.zw-iMouseNormalized.xy) * 20. * smoothstep(.2, 0., length(d)), 0);
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {

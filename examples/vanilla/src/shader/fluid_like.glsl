@@ -4,7 +4,7 @@ precision highp float;
 #define PI2 6.2831853
 
 uniform float iTime;
-uniform vec2  iResolution;
+uniform vec2 iResolution;
 const float Detail = 2.5;// value= 2.5, min=1., max=5., step=0.1
 
 in vec2 vScreen;

@@ -8,7 +8,7 @@ import Uniform, {
   UNIFORM_VEC3,
   UNIFORM_VEC4
 } from "./Uniform.js";
-import type {Texture} from "./Texture.js.js";
+import type {Texture} from "./Texture.js";
 
 export class WebGLInstance {
   public context: WebGLRenderingContext;
@@ -102,6 +102,21 @@ export class WebGLInstance {
     }
   }
 
+  public setCubeMapParameter(texture: WebGLTexture, options: ImageOptions) {
+    const gl = this.context;
+
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, options.magFilterLinear ? gl.LINEAR : gl.NEAREST);
+    if (options.useMipmap) {
+      gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+    } else {
+      gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, options.minFilterLinear ? gl.LINEAR : gl.NEAREST);
+    }
+  }
+
   public bindTextures(textures: Texture[]) {
     const context = this.context;
     // texture/channel uniforms
@@ -111,7 +126,11 @@ export class WebGLInstance {
       if (t && t.buffer) {
         context.bindTexture(context.TEXTURE_2D, t.buffer.src.texture);
       } else if (t && t.texture) {
-        context.bindTexture(context.TEXTURE_2D, t.texture);
+        if (t.isCubemap) {
+          context.bindTexture(context.TEXTURE_CUBE_MAP, t.texture);
+        } else {
+          context.bindTexture(context.TEXTURE_2D, t.texture);
+        }
       } else {
         context.bindTexture(context.TEXTURE_2D, null);
       }
