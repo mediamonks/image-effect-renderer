@@ -9,6 +9,8 @@ in [Shadertoy](https://www.shadertoy.com/) and the syntax of fragments shaders f
 and [OneShader](https://www.oneshader.net/). This makes it easy to prototype different effects using
 Shadertoy or OneShader.
 
+> For a more complete Shadertoy shader renderer with multi-pass buffers, texture/keyboard inputs and more, check out [@reindernijhoff/shadertoy](https://www.npmjs.com/package/@reindernijhoff/shadertoy) — built on top of this package.
+
 ## Demo
 
 - [Stress test with multiple demos](https://mediamonks.github.io/image-effect-renderer/).
