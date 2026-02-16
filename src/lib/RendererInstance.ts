@@ -254,7 +254,7 @@ export class RendererInstance extends Renderer {
 
     if (this.iMouseUsed) {
       const rect = this.container.getBoundingClientRect();
-      this.mouse = getShadertoyMouse(rect);
+      this.mouse = getShadertoyMouse(rect, this.width, this.height);
       this.mouseNormalized = getNormalizedMouse(rect);
       clearMouseClick();
     }

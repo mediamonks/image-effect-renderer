@@ -76,14 +76,15 @@ export function getNormalizedMouse(container: Rect): [number, number, number, nu
 }
 
 // Returns Shadertoy-compatible mouse vec4 in pixel coordinates
-export function getShadertoyMouse(container: Rect): [number, number, number, number] {
-  const height = container.height;
+export function getShadertoyMouse(container: Rect, width: number, height: number): [number, number, number, number] {
+  const containerHeight = container.height;
+  const containerWidth = container.width;
   
   // Convert to pixel coords relative to container, Y flipped
   const dx = dragX - container.left;
-  const dy = height - (dragY - container.top);
+  const dy = containerHeight - (dragY - container.top);
   const cx = clickX - container.left;
-  const cy = height - (clickY - container.top);
+  const cy = containerHeight - (clickY - container.top);
   
   // xy = drag position (only valid when button was/is down)
   const x = mouseDown || clickX > 0 ? dx : 0;
@@ -93,5 +94,5 @@ export function getShadertoyMouse(container: Rect): [number, number, number, num
   const z = (mouseDown ? 1 : -1) * (cx > 0 ? cx : 0);
   const w = (mouseClicked ? 1 : -1) * (cy > 0 ? cy : 0);
   
-  return [x, y, z, w];
+  return [x / containerWidth * width, y / containerHeight * height, z / containerWidth * width, w / containerHeight * height];
 }
