@@ -11,7 +11,11 @@ export interface UseImageEffectRendererOptions extends Partial<ImageEffectRender
 }
 
 export interface UseImageEffectRendererReturn {
-  ref: React.RefObject<HTMLDivElement>;
+  // Portable ref-object shape instead of React.RefObject<…>: React 19 changed RefObject
+  // (`current: T`) vs React 16–18 (`readonly current: T | null`), so a version-specific
+  // RefObject annotation fails to assign to a DOM `ref` prop on one major or the other.
+  // This plain shape attaches cleanly as a `ref` across React 16.8–19.
+  ref: {current: HTMLDivElement | null};
   renderer: RendererInstance | null;
   isReady: boolean;
 }

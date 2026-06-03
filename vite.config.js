@@ -23,13 +23,12 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-      },
+      // Externalize ALL of react / react-dom, including subpaths like react/jsx-runtime.
+      // The automatic JSX transform (tsconfig "jsx": "react-jsx") emits imports from
+      // "react/jsx-runtime"; an exact-string list (['react','react-dom']) does not match it,
+      // so the bundler inlines React's jsx-runtime. These regexes keep every react subpath
+      // external — a React library must never bundle its own copy of the runtime.
+      external: [/^react($|\/)/, /^react-dom($|\/)/],
     },
   }
 })
