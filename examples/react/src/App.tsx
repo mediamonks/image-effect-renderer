@@ -1,8 +1,8 @@
-import React, {useCallback, useRef, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {
   ImageEffectRendererComponent,
   type ImageEffectRendererComponentRef
-} from '../../../src/react';
+} from '@mediamonks/image-effect-renderer/react';
 import glitchShader from './shaders/glitch.glsl?raw';
 import './App.css';
 
