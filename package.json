@@ -18,7 +18,7 @@
   "author": "Reinder Nijhoff <reinder@mediamonks.com>",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/image-effect-renderer.umd.cjs",
+  "main": "./dist/image-effect-renderer.js",
   "module": "./dist/image-effect-renderer.js",
   "types": "./index.d.ts",
   "exports": {
